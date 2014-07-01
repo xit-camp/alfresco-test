@@ -116,6 +116,17 @@ public abstract class AbstractRepoIntegrationTest {
    * @return
    */
   protected NodeRef createUser(String userId) {
+    return createUser(userId, null);
+  }
+
+  /**
+   * Creates a user and a related person in the repository.
+   * 
+   * @param userId
+   * @param callback
+   * @return
+   */
+  protected NodeRef createUser(String userId, CreateUserCallback callback) {
     if (!_authenticationService.authenticationExists(userId)) {
       _authenticationService.createAuthentication(userId, "password".toCharArray());
       PropertyMap properties = new PropertyMap(3);
@@ -124,7 +135,13 @@ public abstract class AbstractRepoIntegrationTest {
       properties.put(ContentModel.PROP_LASTNAME, "Test");
       properties.put(ContentModel.PROP_EMAIL, _properties.getProperty("mail.to.default"));
 
-      return _personService.createPerson(properties);
+      NodeRef user = _personService.createPerson(properties);
+      
+      if (callback != null) {
+        callback.onCreateUser(user);
+      }
+      
+      return user;
     } else {
       fail("User exists: " + userId);
       return null;
@@ -139,13 +156,12 @@ public abstract class AbstractRepoIntegrationTest {
    * @param siteType
    * @return
    */
-  protected SiteInfo createSite(final String preset, final String siteName, final SiteVisibility visibility, final QName siteType) {
+  protected SiteInfo createSite(final String preset, final String siteName, final SiteVisibility visibility, final QName siteType, final CreateSiteCallback callback) {
     return _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<SiteInfo>() {
 
       @Override
       public SiteInfo execute() throws Throwable {
         // Create site
-        // behaviourFilter.disableBehaviour(SiteModel.TYPE_SITE);
         String name = null;
 
         if (siteName == null) {
@@ -155,7 +171,11 @@ public abstract class AbstractRepoIntegrationTest {
         }
 
         SiteInfo site = _siteService.createSite(preset, name, name, name, visibility, siteType);
-
+        
+        if (callback != null) {
+          callback.onCreateSite(site);
+        }
+        
         assertNotNull(site);
 
         _nodeService.addAspect(site.getNodeRef(), ContentModel.ASPECT_TEMPORARY, null);
@@ -180,7 +200,7 @@ public abstract class AbstractRepoIntegrationTest {
 
       @Override
       public SiteInfo execute() throws Throwable {
-        return createSite(preset, null, SiteVisibility.PRIVATE, SiteModel.TYPE_SITE);
+        return createSite(preset, null, SiteVisibility.PRIVATE, SiteModel.TYPE_SITE, null);
       }
 
     }, false, true);
@@ -189,13 +209,21 @@ public abstract class AbstractRepoIntegrationTest {
   protected SiteInfo createSite() {
     return createSite("site-dashboard");
   }
+  
+  protected void deleteSite(SiteInfo siteInfo) {
+    deleteSite(siteInfo, null);
+  }
 
-  protected void deleteSite(final SiteInfo siteInfo) {
+  protected void deleteSite(final SiteInfo siteInfo, final BeforeDeleteSiteCallback callback) {
     _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
 
       @Override
       public Void execute() throws Throwable {
         _authenticationComponent.setCurrentUser(AuthenticationUtil.getAdminUserName());
+        
+        if (callback != null) {
+          callback.onDeleteSite(siteInfo);
+        }
 
         _siteService.deleteSite(siteInfo.getShortName());
 
@@ -273,5 +301,23 @@ public abstract class AbstractRepoIntegrationTest {
     }
     return qname;
   }
+  
+  public interface CreateUserCallback {
 
+    void onCreateUser(NodeRef user);
+    
+  }
+  
+  public interface BeforeDeleteSiteCallback {
+
+    void onDeleteSite(SiteInfo siteInfo);
+    
+  }
+
+  public interface CreateSiteCallback {
+
+    void onCreateSite(SiteInfo site);
+    
+  }
 }
+
