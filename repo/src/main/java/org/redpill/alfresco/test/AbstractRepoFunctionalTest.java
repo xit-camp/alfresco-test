@@ -1,4 +1,4 @@
-package org.redpill.alfresco.unzip;
+package org.redpill.alfresco.test;
 
 import static com.jayway.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;

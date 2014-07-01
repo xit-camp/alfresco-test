@@ -27,16 +27,21 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>3.0.6.RELEASE</version>
-      <scope>compile</scope>
+      <groupId>org.alfresco.maven</groupId>
+      <artifactId>alfresco-rad</artifactId>
+      <version>1.1.1</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>*</artifactId>
+          <groupId>*</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
-      <groupId>com.tradeshift</groupId>
-      <artifactId>junit-remote</artifactId>
-      <version>3</version>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>3.0.6.RELEASE</version>
       <scope>compile</scope>
     </dependency>
 
@@ -50,24 +55,6 @@
       <groupId>${alfresco.groupId}</groupId>
       <artifactId>alfresco-repository</artifactId>
       <version>${alfresco.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium-java</artifactId>
-      <version>2.42.2</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium-firefox-driver</artifactId>
-      <version>2.42.2</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium-server</artifactId>
-      <version>2.42.2</version>
     </dependency>
 
     <dependency>

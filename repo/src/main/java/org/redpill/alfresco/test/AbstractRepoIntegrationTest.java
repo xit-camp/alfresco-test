@@ -1,6 +1,7 @@
-package org.redpill.alfresco.unzip;
+package org.redpill.alfresco.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.InputStream;
 import java.util.List;
@@ -33,20 +34,14 @@ import org.alfresco.util.PropertyMap;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.tradeshift.test.remote.Remote;
-import com.tradeshift.test.remote.RemoteTestRunner;
-
-@RunWith(RemoteTestRunner.class)
-@Remote(runnerClass = SpringJUnit4ClassRunner.class)
+@RunWith(SpringInstanceTestClassRunner.class)
 @ContextConfiguration("classpath:alfresco/application-context.xml")
-public abstract class AbstractRepoIntegrationTest {
+public abstract class AbstractRepoIntegrationTest implements InstanceTestClassListener {
 
   private final static String NAMESPACE_BEGIN = "" + QName.NAMESPACE_BEGIN;
 
@@ -58,7 +53,7 @@ public abstract class AbstractRepoIntegrationTest {
   @Qualifier("TransactionService")
   protected TransactionService _transactionService;
 
-  protected RetryingTransactionHelper _transactionHelper;
+  protected static RetryingTransactionHelper _transactionHelper;
 
   @Autowired
   @Qualifier("policyBehaviourFilter")
@@ -104,14 +99,19 @@ public abstract class AbstractRepoIntegrationTest {
   @Qualifier("global-properties")
   protected Properties _properties;
 
-  @Before
-  public void setup() {
+  @Override
+  public void beforeClassSetup() {
     _transactionHelper = _transactionService.getRetryingTransactionHelper();
+  }
+
+  @Override
+  public void afterClassSetup() {
+    // default implementation does nothing, you're welcome to override :)
   }
 
   /**
    * Creates a user and a related person in the repository.
-   * 
+   *
    * @param userId
    * @return
    */
@@ -121,7 +121,7 @@ public abstract class AbstractRepoIntegrationTest {
 
   /**
    * Creates a user and a related person in the repository.
-   * 
+   *
    * @param userId
    * @param callback
    * @return
@@ -136,11 +136,11 @@ public abstract class AbstractRepoIntegrationTest {
       properties.put(ContentModel.PROP_EMAIL, _properties.getProperty("mail.to.default"));
 
       NodeRef user = _personService.createPerson(properties);
-      
+
       if (callback != null) {
         callback.onCreateUser(user);
       }
-      
+
       return user;
     } else {
       fail("User exists: " + userId);
@@ -150,7 +150,7 @@ public abstract class AbstractRepoIntegrationTest {
 
   /**
    * Creates a site and makes sure that a document library and a data list container exist.
-   * 
+   *
    * @param preset
    * @param visibility
    * @param siteType
@@ -171,11 +171,11 @@ public abstract class AbstractRepoIntegrationTest {
         }
 
         SiteInfo site = _siteService.createSite(preset, name, name, name, visibility, siteType);
-        
+
         if (callback != null) {
           callback.onCreateSite(site);
         }
-        
+
         assertNotNull(site);
 
         _nodeService.addAspect(site.getNodeRef(), ContentModel.ASPECT_TEMPORARY, null);
@@ -209,7 +209,7 @@ public abstract class AbstractRepoIntegrationTest {
   protected SiteInfo createSite() {
     return createSite("site-dashboard");
   }
-  
+
   protected void deleteSite(SiteInfo siteInfo) {
     deleteSite(siteInfo, null);
   }
@@ -220,9 +220,9 @@ public abstract class AbstractRepoIntegrationTest {
       @Override
       public Void execute() throws Throwable {
         _authenticationComponent.setCurrentUser(AuthenticationUtil.getAdminUserName());
-        
+
         if (callback != null) {
-          callback.onDeleteSite(siteInfo);
+          callback.beforeDeleteSite(siteInfo);
         }
 
         _siteService.deleteSite(siteInfo.getShortName());
@@ -301,23 +301,22 @@ public abstract class AbstractRepoIntegrationTest {
     }
     return qname;
   }
-  
+
   public interface CreateUserCallback {
 
     void onCreateUser(NodeRef user);
-    
+
   }
-  
+
   public interface BeforeDeleteSiteCallback {
 
-    void onDeleteSite(SiteInfo siteInfo);
-    
+    void beforeDeleteSite(SiteInfo siteInfo);
+
   }
 
   public interface CreateSiteCallback {
 
     void onCreateSite(SiteInfo site);
-    
+
   }
 }
-
