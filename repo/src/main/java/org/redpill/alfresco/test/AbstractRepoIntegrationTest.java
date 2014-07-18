@@ -239,19 +239,23 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
     return uploadDocument(site, filename, null);
   }
 
-  protected FileInfo uploadDocument(SiteInfo site, String filename, List<String> folders) {
-    return uploadDocument(site, filename, folders, null);
+  protected FileInfo uploadDocument(SiteInfo site, String filename, InputStream inputStream) {
+    return uploadDocument(site, filename, inputStream, null);
   }
 
-  protected FileInfo uploadDocument(SiteInfo site, String filename, List<String> folders, String name) {
-    return uploadDocument(site, filename, folders, name, null);
+  protected FileInfo uploadDocument(SiteInfo site, String filename, InputStream inputStream, List<String> folders) {
+    return uploadDocument(site, filename, inputStream, folders, null);
   }
 
-  protected FileInfo uploadDocument(SiteInfo site, String filename, List<String> folders, String name, NodeRef parentNodeRef) {
-    return uploadDocument(site, filename, folders, name, parentNodeRef, null);
+  protected FileInfo uploadDocument(SiteInfo site, String filename, InputStream inputStream, List<String> folders, String name) {
+    return uploadDocument(site, filename, inputStream, folders, name, null);
   }
 
-  protected FileInfo uploadDocument(final SiteInfo site, final String filename, final List<String> folders, final String name, final NodeRef parentNodeRef, final String type) {
+  protected FileInfo uploadDocument(SiteInfo site, String filename, InputStream inputStream, List<String> folders, String name, NodeRef parentNodeRef) {
+    return uploadDocument(site, filename, inputStream, folders, name, parentNodeRef, null);
+  }
+
+  protected FileInfo uploadDocument(final SiteInfo site, final String filename, final InputStream inputStream, final List<String> folders, final String name, final NodeRef parentNodeRef, final String type) {
     return _transactionHelper.doInTransaction(new RetryingTransactionCallback<FileInfo>() {
 
       @Override
@@ -277,14 +281,14 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
         writer.guessMimetype(filename);
 
-        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
+        InputStream content = inputStream != null ? inputStream : Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
 
         try {
-          writer.putContent(inputStream);
+          writer.putContent(content);
         } catch (Exception ex) {
           throw new RuntimeException(ex);
         } finally {
-          IOUtils.closeQuietly(inputStream);
+          IOUtils.closeQuietly(content);
         }
 
         return fileInfo;
