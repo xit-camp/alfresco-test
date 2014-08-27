@@ -44,6 +44,8 @@ import org.springframework.test.context.ContextConfiguration;
 public abstract class AbstractRepoIntegrationTest implements InstanceTestClassListener {
 
   private final static String NAMESPACE_BEGIN = "" + QName.NAMESPACE_BEGIN;
+  
+  private ThreadLocal<Boolean> _requiresNew = new ThreadLocal<Boolean>();
 
   @Autowired
   @Qualifier("authenticationComponent")
@@ -101,6 +103,8 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
   @Override
   public void beforeClassSetup() {
+    _requiresNew.set(true);
+    
     _transactionHelper = _transactionService.getRetryingTransactionHelper();
   }
 
@@ -149,7 +153,8 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
   }
 
   /**
-   * Creates a site and makes sure that a document library and a data list container exist.
+   * Creates a site and makes sure that a document library and a data list
+   * container exist.
    *
    * @param preset
    * @param visibility
@@ -192,7 +197,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         return site;
       }
 
-    }, false, false);
+    }, false, _requiresNew.get());
   }
 
   protected SiteInfo createSite(final String preset) {
@@ -203,7 +208,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         return createSite(preset, null, SiteVisibility.PRIVATE, SiteModel.TYPE_SITE, null);
       }
 
-    }, false, true);
+    }, false, _requiresNew.get());
   }
 
   protected SiteInfo createSite() {
@@ -232,7 +237,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         return null;
       }
 
-    }, false, true);
+    }, false, _requiresNew.get());
   }
 
   protected FileInfo uploadDocument(SiteInfo site, String filename) {
@@ -255,7 +260,8 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
     return uploadDocument(site, filename, inputStream, folders, name, parentNodeRef, null);
   }
 
-  protected FileInfo uploadDocument(final SiteInfo site, final String filename, final InputStream inputStream, final List<String> folders, final String name, final NodeRef parentNodeRef, final String type) {
+  protected FileInfo uploadDocument(final SiteInfo site, final String filename, final InputStream inputStream, final List<String> folders, final String name, final NodeRef parentNodeRef,
+      final String type) {
     return _transactionHelper.doInTransaction(new RetryingTransactionCallback<FileInfo>() {
 
       @Override
@@ -293,7 +299,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
         return fileInfo;
       }
-    }, false, true);
+    }, false, _requiresNew.get());
   }
 
   protected QName createQName(String s) {
@@ -305,6 +311,33 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
     }
     return qname;
   }
+
+  public <R> R runInSite(RunInSite<R> runInSite) {
+    SiteInfo site = createSite();
+
+    try {
+      return runInSite.doInSite(site);
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    } finally {
+      deleteSite(site);
+    }
+  }
+  
+  public interface RunInSite<Result> {
+    
+    Result doInSite(SiteInfo site) throws Exception;
+    
+  }
+  
+  public void setRequiresNew(boolean requiresNew) {
+    _requiresNew.set(requiresNew);
+  }
+
+  public boolean isRequiresNew() {
+    return _requiresNew.get();
+  }
+
 
   public interface CreateUserCallback {
 
