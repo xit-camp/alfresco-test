@@ -5,6 +5,7 @@ import static org.junit.Assert.fail;
 
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -40,6 +41,7 @@ import org.alfresco.util.PropertyMap;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -48,6 +50,8 @@ import org.springframework.test.context.ContextConfiguration;
 @RunWith(SpringInstanceTestClassRunner.class)
 @ContextConfiguration("classpath:alfresco/application-context.xml")
 public abstract class AbstractRepoIntegrationTest implements InstanceTestClassListener {
+
+  private static final Logger LOG = Logger.getLogger(AbstractRepoIntegrationTest.class);
 
   private final static String NAMESPACE_BEGIN = "" + QName.NAMESPACE_BEGIN;
 
@@ -215,7 +219,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         } else {
           name = siteName;
         }
-
+        
         SiteInfo site = _siteService.createSite(preset, name, name, name, visibility, siteType);
 
         if (callback != null) {
@@ -327,18 +331,29 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         }
 
         QName nodeTypeQName = type == null ? ContentModel.TYPE_CONTENT : createQName(type);
-        
+
         QName assocQName = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, QName.createValidLocalName(finalName));
-        
+
+        Map<QName, Serializable> creationProperites = properties != null ? properties : new HashMap<QName, Serializable>();
+
+        if (!creationProperites.containsKey(ContentModel.PROP_NAME)) {
+          creationProperites.put(ContentModel.PROP_NAME, filename);
+        }
+
         // creates the document
-        final NodeRef document = _nodeService.createNode(finalParentNodeRef, ContentModel.ASSOC_CONTAINS, assocQName, nodeTypeQName, properties).getChildRef();
+        final NodeRef document = _nodeService.createNode(finalParentNodeRef, ContentModel.ASSOC_CONTAINS, assocQName, nodeTypeQName, creationProperites).getChildRef();
 
         // set the correct owner on the document
         AuthenticationUtil.runAsSystem(new RunAsWork<Void>() {
 
           @Override
           public Void doWork() throws Exception {
-            _ownableService.setOwner(document, AuthenticationUtil.getFullyAuthenticatedUser());
+            String username = AuthenticationUtil.getFullyAuthenticatedUser();
+
+            LOG.debug("Setting owner of '" + document + "' to '" + username + "'");
+
+            _ownableService.setOwner(document, username);
+
             return null;
           }
 
