@@ -219,7 +219,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         } else {
           name = siteName;
         }
-        
+
         SiteInfo site = _siteService.createSite(preset, name, name, name, visibility, siteType);
 
         if (callback != null) {
@@ -337,7 +337,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         Map<QName, Serializable> creationProperites = properties != null ? properties : new HashMap<QName, Serializable>();
 
         if (!creationProperites.containsKey(ContentModel.PROP_NAME)) {
-          creationProperites.put(ContentModel.PROP_NAME, filename);
+          creationProperites.put(ContentModel.PROP_NAME, finalName);
         }
 
         // creates the document
