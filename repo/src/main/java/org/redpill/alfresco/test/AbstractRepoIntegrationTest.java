@@ -217,7 +217,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         } else {
           name = siteName;
         }
-        
+
         SiteInfo site = _siteService.createSite(preset, name, name, name, visibility, siteType);
 
         if (callback != null) {
@@ -313,6 +313,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
       @Override
       public FileInfo execute() throws Throwable {
+        LOG.trace("Uploading " + filename);
         String finalName = StringUtils.isNotEmpty(name) ? name : FilenameUtils.getName(filename);
 
         // gets the folder to create the document in, if it's a site then it's
@@ -335,8 +336,10 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         Map<QName, Serializable> creationProperites = properties != null ? properties : new HashMap<QName, Serializable>();
 
         if (!creationProperites.containsKey(ContentModel.PROP_NAME)) {
-          creationProperites.put(ContentModel.PROP_NAME, filename);
+          creationProperites.put(ContentModel.PROP_NAME, finalName);
         }
+
+        LOG.trace("Node type: " + nodeTypeQName);
 
         // creates the document
         final NodeRef document = _nodeService.createNode(finalParentNodeRef, ContentModel.ASSOC_CONTAINS, assocQName, nodeTypeQName, creationProperites).getChildRef();
@@ -374,7 +377,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         } finally {
           IOUtils.closeQuietly(content);
         }
-
+        LOG.trace("Upload finished ");
         return fileInfo;
       }
     }, false, _requiresNew);
