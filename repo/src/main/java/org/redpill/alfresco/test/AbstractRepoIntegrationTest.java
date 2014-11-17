@@ -55,7 +55,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
   private final static String NAMESPACE_BEGIN = "" + QName.NAMESPACE_BEGIN;
 
-  private ThreadLocal<Boolean> _requiresNew = new ThreadLocal<Boolean>();
+  private boolean _requiresNew = true;
 
   @Autowired
   @Qualifier("authenticationComponent")
@@ -116,8 +116,6 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
   @Override
   public void beforeClassSetup() {
-    _requiresNew.set(true);
-
     _transactionHelper = _transactionService.getRetryingTransactionHelper();
   }
 
@@ -242,7 +240,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         return site;
       }
 
-    }, false, _requiresNew.get());
+    }, false, _requiresNew);
   }
 
   protected SiteInfo createSite(final String preset) {
@@ -253,7 +251,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         return createSite(preset, null, SiteVisibility.PRIVATE, SiteModel.TYPE_SITE, null);
       }
 
-    }, false, _requiresNew.get());
+    }, false, _requiresNew);
   }
 
   protected SiteInfo createSite() {
@@ -282,7 +280,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         return null;
       }
 
-    }, false, _requiresNew.get());
+    }, false, _requiresNew);
   }
 
   protected FileInfo uploadDocument(SiteInfo site, String filename) {
@@ -360,7 +358,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         });
 
         FileInfo fileInfo = _fileFolderService.getFileInfo(document);
-
+        
         ContentWriter writer = _contentService.getWriter(document, ContentModel.PROP_CONTENT, true);
 
         writer.guessEncoding();
@@ -379,7 +377,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
         return fileInfo;
       }
-    }, false, _requiresNew.get());
+    }, false, _requiresNew);
   }
 
   protected QName createQName(String s) {
@@ -411,11 +409,11 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
   }
 
   public void setRequiresNew(boolean requiresNew) {
-    _requiresNew.set(requiresNew);
+    _requiresNew = requiresNew;
   }
 
   public boolean isRequiresNew() {
-    return _requiresNew.get();
+    return _requiresNew;
   }
 
   public interface CreateUserCallback {
