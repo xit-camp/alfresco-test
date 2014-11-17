@@ -55,7 +55,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
   private final static String NAMESPACE_BEGIN = "" + QName.NAMESPACE_BEGIN;
 
-  private ThreadLocal<Boolean> _requiresNew = new ThreadLocal<Boolean>();
+  private static ThreadLocal<Boolean> _requiresNew = new ThreadLocal<Boolean>();
 
   @Autowired
   @Qualifier("authenticationComponent")
