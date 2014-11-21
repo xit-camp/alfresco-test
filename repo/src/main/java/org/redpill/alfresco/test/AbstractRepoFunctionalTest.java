@@ -23,13 +23,13 @@ public abstract class AbstractRepoFunctionalTest {
 
   private final static Logger LOG = Logger.getLogger(AbstractRepoFunctionalTest.class);
 
-  public static final String BASE_URI = "http://localhost:8080/alfresco/service";
+  public static final String DEFAULT_BASE_URI = "http://localhost:8080/alfresco/service";
 
   protected JSONObject getMetadata(String nodeRef) throws JSONException {
     RestAssured.requestContentType(ContentType.JSON);
     RestAssured.responseContentType(ContentType.JSON);
 
-    Response response = given().baseUri(BASE_URI).pathParam("nodeRef", nodeRef).expect().statusCode(200).when().get("/api/metadata?nodeRef={nodeRef}&shortQNames=true");
+    Response response = given().baseUri(getBaseUri()).pathParam("nodeRef", nodeRef).expect().statusCode(200).when().get("/api/metadata?nodeRef={nodeRef}&shortQNames=true");
 
     if (LOG.isDebugEnabled()) {
       response.prettyPrint();
@@ -48,7 +48,7 @@ public abstract class AbstractRepoFunctionalTest {
     String id = StringUtils.replace(nodeRef, "workspace://SpacesStore/", "");
 
     Response response = given()
-        .baseUri(BASE_URI)
+        .baseUri(getBaseUri())
         .pathParam("store_type", "workspace")
         .pathParam("store_id", "SpacesStore")
         .pathParam("id", id)
@@ -69,7 +69,7 @@ public abstract class AbstractRepoFunctionalTest {
     String storeId = "SpacesStore";
     String id = StringUtils.replace(nodeRef, "workspace://SpacesStore/", "");
 
-    Response response = given().baseUri(BASE_URI).pathParam("store_type", storeType).pathParam("store_id", storeId).pathParam("id", id).body("{}").expect().statusCode(200).when()
+    Response response = given().baseUri(getBaseUri()).pathParam("store_type", storeType).pathParam("store_id", storeId).pathParam("id", id).body("{}").expect().statusCode(200).when()
         .post("/slingshot/doclib/action/checkout/node/{store_type}/{store_id}/{id}");
 
     return new JSONObject(response.asString());
@@ -78,7 +78,11 @@ public abstract class AbstractRepoFunctionalTest {
   protected InputStream downloadDocument(String downloadUrl, String responseContentType) {
     RestAssured.responseContentType(responseContentType);
 
-    Response response = given().baseUri(BASE_URI).expect().statusCode(200).when().get(downloadUrl);
+    Response response = given()
+        .baseUri(getBaseUri())
+        .expect()
+        .statusCode(200)
+        .when().get(downloadUrl);
 
     return response.getBody().asInputStream();
   }
@@ -91,7 +95,7 @@ public abstract class AbstractRepoFunctionalTest {
     String storeId = "SpacesStore";
     String id = StringUtils.replace(nodeRef, "workspace://SpacesStore/", "");
 
-    Response response = given().baseUri(BASE_URI).pathParam("store_type", storeType).pathParam("store_id", storeId).pathParam("id", id).body("{}").expect().statusCode(200).when()
+    Response response = given().baseUri(getBaseUri()).pathParam("store_type", storeType).pathParam("store_id", storeId).pathParam("id", id).body("{}").expect().statusCode(200).when()
         .post("/slingshot/doclib/action/cancel-checkout/node/{store_type}/{store_id}/{id}");
 
     return new JSONObject(response.asString());
@@ -108,7 +112,7 @@ public abstract class AbstractRepoFunctionalTest {
     InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
     
     RequestSpecification request = given()
-        .baseUri(BASE_URI)
+        .baseUri(getBaseUri())
         .multiPart("filedata", filename, inputStream)
         .formParam("filename", filename)
         .formParam("siteid", site)
@@ -139,7 +143,7 @@ public abstract class AbstractRepoFunctionalTest {
     String siteDashboard = "site-dashboard";
 
     given()
-        .baseUri(BASE_URI)
+        .baseUri(getBaseUri())
         .body(
             "{\"visibility\":\"" + visibility + "\",\"title\":\"" + title + "\",\"shortName\":\"" + shortName + "\",\"description\":\"" + description + "\",\"sitePreset\":\"" + siteDashboard + "\"}")
         .expect().contentType(ContentType.JSON).and().statusCode(200).and().body("shortName", equalTo(shortName)).when().post("/api/sites");
@@ -171,7 +175,7 @@ public abstract class AbstractRepoFunctionalTest {
       json.put("groups", new JSONArray(groups));
     }
 
-    Response response = given().baseUri(BASE_URI).body(json.toString()).expect().contentType(ContentType.JSON).and().statusCode(200)
+    Response response = given().baseUri(getBaseUri()).body(json.toString()).expect().contentType(ContentType.JSON).and().statusCode(200)
     // .and().body("shortName", equalTo(shortName))
         .when().post("/api/people");
 
@@ -182,7 +186,7 @@ public abstract class AbstractRepoFunctionalTest {
     RestAssured.requestContentType(ContentType.JSON);
     RestAssured.responseContentType(ContentType.JSON);
 
-    given().baseUri(BASE_URI).pathParam("username", username).expect().statusCode(200).when().delete("/api/people/{username}");
+    given().baseUri(getBaseUri()).pathParam("username", username).expect().statusCode(200).when().delete("/api/people/{username}");
   }
 
   protected void addSiteMembership(String site, String username, String role) throws JSONException {
@@ -193,14 +197,17 @@ public abstract class AbstractRepoFunctionalTest {
     json.put("person", person);
     json.put("role", role);
 
-    given().baseUri(BASE_URI).pathParam("shortname", site).body(json.toString()).expect().contentType(ContentType.JSON).and().statusCode(200).when().post("/api/sites/{shortname}/memberships");
+    given().baseUri(getBaseUri()).pathParam("shortname", site).body(json.toString()).expect().contentType(ContentType.JSON).and().statusCode(200).when().post("/api/sites/{shortname}/memberships");
   }
 
   protected void deleteSite(String shortName) {
     RestAssured.requestContentType(ContentType.JSON);
     RestAssured.responseContentType(ContentType.JSON);
 
-    Response response = given().baseUri(BASE_URI).expect().statusCode(200).when().delete("/api/sites/" + shortName);
+    Response response = given()
+        .baseUri(getBaseUri())
+        .expect().statusCode(200)
+        .when().delete("/api/sites/" + shortName);
 
     response.prettyPrint();
   }
@@ -209,7 +216,7 @@ public abstract class AbstractRepoFunctionalTest {
     RestAssured.requestContentType(ContentType.JSON);
     RestAssured.responseContentType(ContentType.JSON);
 
-    Response response = given().pathParameter("shortName", site).pathParam("container", "documentLibrary").baseUri(BASE_URI).expect().statusCode(200).when()
+    Response response = given().pathParameter("shortName", site).pathParam("container", "documentLibrary").baseUri(getBaseUri()).expect().statusCode(200).when()
         .get("/slingshot/doclib/container/{shortName}/{container}");
 
     return response.path("container.nodeRef");
@@ -217,7 +224,7 @@ public abstract class AbstractRepoFunctionalTest {
   
   protected JSONObject search(String term, String tag, String site, String container, String sort, String query, String repo) throws JSONException {
     RequestSpecification request = given()
-        .baseUri(BASE_URI);
+        .baseUri(getBaseUri());
     
     String queryString = "";
     
@@ -351,6 +358,11 @@ public abstract class AbstractRepoFunctionalTest {
   public static void assertDocumentNotExist(JSONObject metadata) throws JSONException {
     assertEquals(0, metadata.length());
   }
-  
+
+  protected String getBaseUri() {
+    return DEFAULT_BASE_URI;
+  }
+
+
 }
 
