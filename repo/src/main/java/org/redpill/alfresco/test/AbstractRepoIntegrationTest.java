@@ -304,7 +304,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
   }
 
   protected FileInfo uploadDocument(SiteInfo site, String filename, InputStream inputStream, List<String> folders, String name, NodeRef parentNodeRef, String type) {
-    return uploadDocument(site, filename, inputStream, folders, name, parentNodeRef, null, null);
+    return uploadDocument(site, filename, inputStream, folders, name, parentNodeRef, type, null);
   }
 
   protected FileInfo uploadDocument(final SiteInfo site, final String filename, final InputStream inputStream, final List<String> folders, final String name, final NodeRef parentNodeRef,
