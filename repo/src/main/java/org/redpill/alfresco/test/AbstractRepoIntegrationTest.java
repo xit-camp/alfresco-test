@@ -55,7 +55,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
   private final static String NAMESPACE_BEGIN = "" + QName.NAMESPACE_BEGIN;
 
-  private ThreadLocal<Boolean> _requiresNew = new ThreadLocal<Boolean>();
+  private boolean _requiresNew = true;
 
   @Autowired
   @Qualifier("authenticationComponent")
@@ -116,8 +116,6 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
   @Override
   public void beforeClassSetup() {
-    _requiresNew.set(true);
-
     _transactionHelper = _transactionService.getRetryingTransactionHelper();
   }
 
@@ -219,7 +217,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         } else {
           name = siteName;
         }
-        
+
         SiteInfo site = _siteService.createSite(preset, name, name, name, visibility, siteType);
 
         if (callback != null) {
@@ -242,7 +240,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         return site;
       }
 
-    }, false, _requiresNew.get());
+    }, false, _requiresNew);
   }
 
   protected SiteInfo createSite(final String preset) {
@@ -253,7 +251,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         return createSite(preset, null, SiteVisibility.PRIVATE, SiteModel.TYPE_SITE, null);
       }
 
-    }, false, _requiresNew.get());
+    }, false, _requiresNew);
   }
 
   protected SiteInfo createSite() {
@@ -282,7 +280,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         return null;
       }
 
-    }, false, _requiresNew.get());
+    }, false, _requiresNew);
   }
 
   protected FileInfo uploadDocument(SiteInfo site, String filename) {
@@ -306,7 +304,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
   }
 
   protected FileInfo uploadDocument(SiteInfo site, String filename, InputStream inputStream, List<String> folders, String name, NodeRef parentNodeRef, String type) {
-    return uploadDocument(site, filename, inputStream, folders, name, parentNodeRef, null, null);
+    return uploadDocument(site, filename, inputStream, folders, name, parentNodeRef, type, null);
   }
 
   protected FileInfo uploadDocument(final SiteInfo site, final String filename, final InputStream inputStream, final List<String> folders, final String name, final NodeRef parentNodeRef,
@@ -315,6 +313,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
       @Override
       public FileInfo execute() throws Throwable {
+        LOG.trace("Uploading " + filename);
         String finalName = StringUtils.isNotEmpty(name) ? name : FilenameUtils.getName(filename);
 
         // gets the folder to create the document in, if it's a site then it's
@@ -337,8 +336,10 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         Map<QName, Serializable> creationProperites = properties != null ? properties : new HashMap<QName, Serializable>();
 
         if (!creationProperites.containsKey(ContentModel.PROP_NAME)) {
-          creationProperites.put(ContentModel.PROP_NAME, filename);
+          creationProperites.put(ContentModel.PROP_NAME, finalName);
         }
+
+        LOG.trace("Node type: " + nodeTypeQName);
 
         // creates the document
         final NodeRef document = _nodeService.createNode(finalParentNodeRef, ContentModel.ASSOC_CONTAINS, assocQName, nodeTypeQName, creationProperites).getChildRef();
@@ -360,7 +361,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         });
 
         FileInfo fileInfo = _fileFolderService.getFileInfo(document);
-
+        
         ContentWriter writer = _contentService.getWriter(document, ContentModel.PROP_CONTENT, true);
 
         writer.guessEncoding();
@@ -376,10 +377,10 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         } finally {
           IOUtils.closeQuietly(content);
         }
-
+        LOG.trace("Upload finished ");
         return fileInfo;
       }
-    }, false, _requiresNew.get());
+    }, false, _requiresNew);
   }
 
   protected QName createQName(String s) {
@@ -411,11 +412,11 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
   }
 
   public void setRequiresNew(boolean requiresNew) {
-    _requiresNew.set(requiresNew);
+    _requiresNew = requiresNew;
   }
 
   public boolean isRequiresNew() {
-    return _requiresNew.get();
+    return _requiresNew;
   }
 
   public interface CreateUserCallback {
