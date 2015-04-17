@@ -267,7 +267,8 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
       @Override
       public Void execute() throws Throwable {
-        _authenticationComponent.setCurrentUser(AuthenticationUtil.getAdminUserName());
+        String fullyAuthenticatedUser = AuthenticationUtil.getFullyAuthenticatedUser();
+        AuthenticationUtil.setAdminUserAsFullyAuthenticatedUser();
 
         if (callback != null) {
           callback.beforeDeleteSite(siteInfo);
@@ -276,7 +277,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         _siteService.deleteSite(siteInfo.getShortName());
 
         System.out.println("deleted site with shortName: " + siteInfo.getShortName());
-
+        AuthenticationUtil.setFullyAuthenticatedUser(fullyAuthenticatedUser);
         return null;
       }
 
