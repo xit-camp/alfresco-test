@@ -15,7 +15,6 @@ import javax.annotation.Resource;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.model.Repository;
-import org.alfresco.repo.node.archive.NodeArchiveService;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -91,10 +90,6 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
   @Qualifier("PersonService")
   protected PersonService _personService;
 
-  @Autowired
-  @Qualifier("nodeArchiveService")
-  protected NodeArchiveService _nodeArchiveService;
-  
   @Autowired
   @Qualifier("NodeService")
   protected NodeService _nodeService;
@@ -292,13 +287,8 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
         deleteLingeringSiteGroups(siteInfo);
         _siteService.deleteSite(siteInfo.getShortName());
-
         
         System.out.println("deleted site with shortName: " + siteInfo.getShortName());
-        
-        // Now purge the site from the archive as well to force alfresco to delete the lingering site groups
-        //NodeRef archivedSite = _nodeArchiveService.getArchivedNode(siteInfo.getNodeRef());
-        //  _nodeArchiveService.purgeArchivedNode(siteInfo.getNodeRef());
         AuthenticationUtil.setFullyAuthenticatedUser(fullyAuthenticatedUser);
         return null;
       }
