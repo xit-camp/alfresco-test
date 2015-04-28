@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -27,8 +28,10 @@ import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
 import org.alfresco.service.cmr.security.OwnableService;
+import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.cmr.site.SiteInfo;
 import org.alfresco.service.cmr.site.SiteService;
@@ -106,7 +109,15 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
   @Autowired
   @Qualifier("WorkflowService")
   protected WorkflowService _workflowService;
+  
+  @Autowired
+  @Qualifier("AuthorityService")
+  protected AuthorityService _authorityService;
 
+  @Autowired
+  @Qualifier("PermissionService")
+  protected PermissionService _permissionService;
+  
   @Autowired
   @Qualifier("global-properties")
   protected Properties _properties;
@@ -274,14 +285,49 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
           callback.beforeDeleteSite(siteInfo);
         }
 
+        deleteLingeringSiteGroups(siteInfo);
         _siteService.deleteSite(siteInfo.getShortName());
-
+        
         System.out.println("deleted site with shortName: " + siteInfo.getShortName());
         AuthenticationUtil.setFullyAuthenticatedUser(fullyAuthenticatedUser);
         return null;
       }
 
     }, false, _requiresNew);
+    
+  }
+  
+  protected void deleteLingeringSiteGroups(SiteInfo siteInfo){
+    final NodeRef nodeRef = siteInfo.getNodeRef();
+    final QName siteType = _nodeService.getType(nodeRef);
+    final String shortName = siteInfo.getShortName();
+    
+    // Delete the associated groups
+    AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Object>()
+    {
+        public Void doWork() throws Exception
+        {
+            // Delete the master site group
+            final String siteGroup = _siteService.getSiteGroup(shortName);
+            if (_authorityService.authorityExists(siteGroup))
+            {
+                _authorityService.deleteAuthority(siteGroup, false);
+
+                // Iterate over the role related groups and delete then
+                Set<String> permissions = _permissionService.getSettablePermissions(siteType);
+                for (String permission : permissions)
+                {
+                    String siteRoleGroup = _siteService.getSiteRoleGroup(shortName, permission);
+
+                    // Delete the site role group
+                    _authorityService.deleteAuthority(siteRoleGroup);
+                }
+            }
+
+            return null;
+        }
+    }, AuthenticationUtil.getSystemUserName());
+
   }
 
   protected FileInfo uploadDocument(SiteInfo site, String filename) {

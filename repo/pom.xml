@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.redpill-linpro.alfresco</groupId>
     <artifactId>alfresco-test</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
   </parent>
 
   <artifactId>alfresco-test-repo</artifactId>
@@ -26,18 +26,6 @@
   </developers>
 
   <dependencies>
-    <dependency>
-      <groupId>org.alfresco.maven</groupId>
-      <artifactId>alfresco-rad</artifactId>
-      <version>1.1.1</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>*</artifactId>
-          <groupId>*</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
