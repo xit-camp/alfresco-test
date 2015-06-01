@@ -23,7 +23,9 @@ public abstract class AbstractRepoFunctionalTest {
 
   private final static Logger LOG = Logger.getLogger(AbstractRepoFunctionalTest.class);
 
-  public static final String DEFAULT_BASE_URI = "http://localhost:8080/alfresco/service";
+  public static final String DEFAULT_BASE_URI = "http://localhost:%s/alfresco/service";
+  
+  public static final String DEFAULT_HTTP_PORT = "8080";
 
   protected JSONObject getMetadata(String nodeRef) throws JSONException {
     RestAssured.requestContentType(ContentType.JSON);
@@ -360,7 +362,9 @@ public abstract class AbstractRepoFunctionalTest {
   }
 
   protected String getBaseUri() {
-    return DEFAULT_BASE_URI;
+    String port = System.getProperty("cargo.servlet.port", DEFAULT_HTTP_PORT);
+    
+    return String.format(DEFAULT_BASE_URI, port);
   }
 
 
