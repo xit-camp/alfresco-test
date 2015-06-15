@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.redpill-linpro.alfresco</groupId>
     <artifactId>alfresco-test</artifactId>
-    <version>2.1.0</version>
+    <version>2.1.1</version>
   </parent>
 
   <artifactId>alfresco-test-repo</artifactId>
@@ -82,6 +82,7 @@
       <groupId>org.springframework.extensions.surf</groupId>
       <artifactId>spring-surf-core-configservice</artifactId>
       <version>${alfresco.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
