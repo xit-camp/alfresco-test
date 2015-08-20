@@ -176,19 +176,36 @@ public abstract class AbstractRepoFunctionalTest {
     if (groups != null) {
       json.put("groups", new JSONArray(groups));
     }
-
-    Response response = given().baseUri(getBaseUri()).body(json.toString()).expect().contentType(ContentType.JSON).and().statusCode(200)
-    // .and().body("shortName", equalTo(shortName))
+    
+    RequestSpecification request = given()
+        .baseUri(getBaseUri())
+        .and().body(json.toString())
+        .and().contentType(ContentType.JSON.withCharset("UTF-8"));
+    
+    Response response = request
+        .expect().contentType(ContentType.JSON)
+        .and().statusCode(200)
         .when().post("/api/people");
 
     return new JSONObject(response.body().asString());
   }
 
-  protected void deleteUser(String username) {
-    RestAssured.requestContentType(ContentType.JSON);
-    RestAssured.responseContentType(ContentType.JSON);
-
-    given().baseUri(getBaseUri()).pathParam("username", username).expect().statusCode(200).when().delete("/api/people/{username}");
+  protected JSONObject deleteUser(String username) {
+    RequestSpecification request = given()
+      .baseUri(getBaseUri())
+      .pathParam("username", username)
+      .contentType(ContentType.JSON.withCharset("UTF-8"));
+    
+    Response response = request
+      .expect().statusCode(200)
+      .and().contentType(ContentType.JSON)
+      .when().delete("/api/people/{username}");
+    
+    try {
+      return new JSONObject(response.body().asString());
+    } catch (JSONException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   protected void addSiteMembership(String site, String username, String role) throws JSONException {
@@ -199,7 +216,84 @@ public abstract class AbstractRepoFunctionalTest {
     json.put("person", person);
     json.put("role", role);
 
-    given().baseUri(getBaseUri()).pathParam("shortname", site).body(json.toString()).expect().contentType(ContentType.JSON).and().statusCode(200).when().post("/api/sites/{shortname}/memberships");
+    RequestSpecification request = given()
+      .baseUri(getBaseUri())
+      .and().pathParam("shortname", site)
+      .and().body(json.toString())
+      .and().contentType(ContentType.JSON.withCharset("UTF-8"));
+    
+    request
+      .expect().contentType(ContentType.JSON)
+      .and().statusCode(200)
+      .when().post("/api/sites/{shortname}/memberships");
+  }
+  
+  /**
+   * Creates a root group in Alfresco.
+   * 
+   * @param shortName the short name of the group
+   * @param displayName the display name of the group
+   * @return 
+   * @throws JSONException 
+   */
+  protected JSONObject createRootGroup(String shortName, String displayName) throws JSONException {
+    JSONObject json = new JSONObject();
+    json.put("displayName", displayName);
+
+    RequestSpecification request = given()
+        .baseUri(getBaseUri())
+        .and().body(json.toString())
+        .and().pathParam("shortName", shortName)
+        .and().contentType(ContentType.JSON.withCharset("UTF-8"));
+    
+    Response response = request
+        .expect().contentType(ContentType.JSON)
+        .and().statusCode(201)
+        .when().post("/api/rootgroups/{shortName}");
+
+    return new JSONObject(response.body().asString());
+  }
+  
+  protected JSONObject deleteGroup(String shortName) {
+    RequestSpecification request = given()
+        .baseUri(getBaseUri())
+        .and().pathParam("shortName", shortName)
+        .and().contentType(ContentType.JSON.withCharset("UTF-8"));
+      
+    Response response = request
+      .expect().statusCode(200)
+      .and().contentType(ContentType.JSON)
+      .when().delete("/api/groups/{shortName}");
+      
+    try {
+      return new JSONObject(response.body().asString());
+    } catch (JSONException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+  
+  /**
+   * Adds an authority to a group, can be either a user or a group.
+   * 
+   * @param shortName the short name for the group 
+   * @param authorityName the user or group name
+   * @return
+   * @throws JSONException
+   */
+  protected JSONObject addAuthorityToGroup(String shortName, String authorityName) throws JSONException {
+    RequestSpecification request = given()
+        .baseUri(getBaseUri())
+        .and().body(new JSONObject().toString())
+        .and().pathParam("shortName", shortName)
+        .and().pathParam("authorityName", authorityName)
+        .and().contentType(ContentType.JSON.withCharset("UTF-8"));
+    
+    Response response = request
+        .expect().contentType(ContentType.JSON)
+        .and().statusCode(200)
+        .when().post("/api/groups/{shortName}/children/{authorityName}");
+    
+    return new JSONObject(response.body().asString());
   }
 
   protected void deleteSite(String shortName) {
