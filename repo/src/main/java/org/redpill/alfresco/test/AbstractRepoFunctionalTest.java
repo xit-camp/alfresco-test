@@ -309,13 +309,125 @@ public abstract class AbstractRepoFunctionalTest {
   }
 
   protected String getDocumentLibraryNodeRef(String site) {
-    RestAssured.requestContentType(ContentType.JSON);
-    RestAssured.responseContentType(ContentType.JSON);
-
-    Response response = given().pathParameter("shortName", site).pathParam("container", "documentLibrary").baseUri(getBaseUri()).expect().statusCode(200).when()
-        .get("/slingshot/doclib/container/{shortName}/{container}");
+    RequestSpecification request = given()
+        .baseUri(getBaseUri())
+        .and().pathParameter("shortName", site)
+        .and().pathParam("container", "documentLibrary")
+        .and().contentType(ContentType.JSON.withCharset("UTF-8"));
+    
+    Response response = request
+        .expect().statusCode(200)
+        .and().contentType(ContentType.JSON)
+        .when().get("/slingshot/doclib/container/{shortName}/{container}");
 
     return response.path("container.nodeRef");
+  }
+  
+  protected JSONObject addComment(String nodeRef, String comment) throws JSONException {
+    String id = StringUtils.replace(nodeRef, "workspace://SpacesStore/", "");
+
+    JSONObject json = new JSONObject();
+    
+    json.put("content", comment);
+    json.put("itemTitle", "Foobar");
+    json.put("page", "document-details");
+    json.put("pageParams", "{\"nodeRef\":\"" + nodeRef + "\"}");
+    
+    RequestSpecification request = given()
+        .baseUri(getBaseUri())
+        .and().pathParam("store_type", "workspace")
+        .and().pathParam("store_id", "SpacesStore")
+        .and().pathParam("id", id)
+        .and().request().body(json.toString())
+        .and().contentType(ContentType.JSON.withCharset("UTF-8"));
+    
+    Response response = request
+        .expect().statusCode(200)
+        .when().post("/api/node/{store_type}/{store_id}/{id}/comments");
+
+    return new JSONObject(response.asString());
+  }
+
+  protected JSONObject createTag(String tag) throws JSONException {
+    JSONObject json = new JSONObject();
+    
+    json.put("name", tag);
+    
+    RequestSpecification request = given()
+        .baseUri(getBaseUri())
+        .and().request().body(json.toString())
+        .and().contentType(ContentType.JSON.withCharset("UTF-8"));
+    
+    Response response = request
+        .expect().statusCode(200)
+        .when().post("/api/tag/workspace/SpacesStore");
+
+    return new JSONObject(response.asString());
+  }
+
+  protected JSONObject addTags(String nodeRef, String... tag) throws JSONException {
+    String id = StringUtils.replace(nodeRef, "workspace://SpacesStore/", "");
+
+    JSONObject json = new JSONObject();
+    
+    json.put("prop_cm_taggable", StringUtils.join(tag, ","));
+    
+    RequestSpecification request = given()
+        .baseUri(getBaseUri())
+        .and().pathParam("store_type", "workspace")
+        .and().pathParam("store_id", "SpacesStore")
+        .and().pathParam("id", id)
+        .and().request().body(json.toString())
+        .and().contentType(ContentType.JSON.withCharset("UTF-8"));
+    
+    Response response = request
+        .expect().statusCode(200)
+        .when().post("/api/node/{store_type}/{store_id}/{id}/formprocessor");
+
+    return new JSONObject(response.asString());
+  }
+
+  protected JSONObject createFolder(String destination, String name, String title, String description) throws JSONException {
+    JSONObject json = new JSONObject();
+    
+    json.put("alf_destination", destination);
+    json.put("prop_cm_description", description);
+    json.put("prop_cm_name", name);
+    json.put("prop_cm_title", title);
+    
+    RequestSpecification request = given()
+        .baseUri(getBaseUri())
+        .and().request().body(json.toString())
+        .and().contentType(ContentType.JSON.withCharset("UTF-8"));
+    
+    Response response = request
+        .expect().statusCode(200)
+        .when().post("/api/type/cm:folder/formprocessor");
+    
+    return new JSONObject(response.asString());
+  }
+  
+  protected JSONObject like(String nodeRef) throws JSONException {
+    String id = StringUtils.replace(nodeRef, "workspace://SpacesStore/", "");
+
+    JSONObject json = new JSONObject();
+    
+    json.put("ratingScheme", "likesRatingScheme");
+    json.put("rating", 1);
+    
+    RequestSpecification request = given()
+        .baseUri(getBaseUri())
+        .and().pathParam("store_type", "workspace")
+        .and().pathParam("store_id", "SpacesStore")
+        .and().pathParam("id", id)
+        .and().request().body(json.toString())
+        .and().contentType(ContentType.JSON.withCharset("UTF-8"));
+    
+    Response response = request
+        .expect().statusCode(200)
+        .when().post("/api/node/{store_type}/{store_id}/{id}/ratings");
+    
+    return new JSONObject(response.asString());
   }
   
   protected JSONObject search(String term, String tag, String site, String container, String sort, String query, String repo) throws JSONException {
