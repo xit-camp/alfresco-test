@@ -107,18 +107,24 @@ public abstract class AbstractRepoFunctionalTest {
     return uploadDocument(filename, site, null);
   }
 
-  protected String uploadDocument(String filename, String site, String contentType) {
-    RestAssured.requestContentType("multipart/form-data");
-    RestAssured.responseContentType(ContentType.JSON);
+  protected String uploadDocument(String filename, String site, String folder) {
+    return uploadDocument(filename, site, folder, null);
+  }
 
+  protected String uploadDocument(String filename, String site, String folder, String contentType) {
     InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
     
     RequestSpecification request = given()
         .baseUri(getBaseUri())
-        .multiPart("filedata", filename, inputStream)
-        .formParam("filename", filename)
-        .formParam("siteid", site)
-        .formParam("containerid", "documentLibrary");
+        .and().multiPart("filedata", filename, inputStream)
+        .and().formParam("filename", filename)
+        .and().formParam("siteid", site)
+        .and().formParam("containerid", "documentLibrary")
+        .and().contentType("multipart/form-data");
+    
+    if (StringUtils.isNotBlank(folder)) {
+      request.formParam("uploaddirectory", folder);
+    } 
     
     if (StringUtils.isNotBlank(contentType)) {
       request.formParam("contenttype", contentType);
@@ -126,6 +132,7 @@ public abstract class AbstractRepoFunctionalTest {
 
     Response response = request
         .expect().statusCode(200)
+        .and().contentType(ContentType.JSON)
         .when().post("/api/upload");
     
     if (LOG.isDebugEnabled()) {
