@@ -15,9 +15,9 @@
 
   <properties>
     <alfresco.groupId>org.alfresco</alfresco.groupId>
-    <alfresco.version>4.2.e</alfresco.version>
+    <alfresco.version>4.2.5.1</alfresco.version>
   </properties>
-  
+
   <modules>
     <module>repo</module>
     <module>share</module>
@@ -29,5 +29,15 @@
       <url>https://maven.redpill-linpro.com/nexus/content/groups/public</url>
     </repository>
   </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.alfresco</groupId>
+      <artifactId>alfresco-repository</artifactId>
+      <version>4.2.5.1</version>
+      <classifier>h2scripts</classifier>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
 </project>
