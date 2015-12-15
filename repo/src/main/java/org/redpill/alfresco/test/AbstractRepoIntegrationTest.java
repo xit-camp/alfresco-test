@@ -122,8 +122,9 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
   @Qualifier("global-properties")
   protected Properties _properties;
 
-  @Resource(name = "OwnableService")
-  private OwnableService _ownableService;
+  @Autowired
+  @Qualifier("OwnableService")
+  protected OwnableService _ownableService;
 
   @Override
   public void beforeClassSetup() {
@@ -386,7 +387,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
         // creates the document
         final NodeRef document = _nodeService.createNode(finalParentNodeRef, ContentModel.ASSOC_CONTAINS, assocQName, nodeTypeQName, creationProperites).getChildRef();
-
+        assertNotNull("Created node is null!", document);
         // set the correct owner on the document
         AuthenticationUtil.runAsSystem(new RunAsWork<Void>() {
 
