@@ -109,7 +109,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
   @Autowired
   @Qualifier("WorkflowService")
   protected WorkflowService _workflowService;
-  
+
   @Autowired
   @Qualifier("AuthorityService")
   protected AuthorityService _authorityService;
@@ -117,13 +117,14 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
   @Autowired
   @Qualifier("PermissionService")
   protected PermissionService _permissionService;
-  
+
   @Autowired
   @Qualifier("global-properties")
   protected Properties _properties;
 
-  @Resource(name = "OwnableService")
-  private OwnableService _ownableService;
+  @Autowired
+  @Qualifier("OwnableService")
+  protected OwnableService _ownableService;
 
   @Override
   public void beforeClassSetup() {
@@ -287,45 +288,41 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
         deleteLingeringSiteGroups(siteInfo);
         _siteService.deleteSite(siteInfo.getShortName());
-        
+
         System.out.println("deleted site with shortName: " + siteInfo.getShortName());
         AuthenticationUtil.setFullyAuthenticatedUser(fullyAuthenticatedUser);
         return null;
       }
 
     }, false, _requiresNew);
-    
+
   }
-  
-  protected void deleteLingeringSiteGroups(SiteInfo siteInfo){
+
+  protected void deleteLingeringSiteGroups(SiteInfo siteInfo) {
     final NodeRef nodeRef = siteInfo.getNodeRef();
     final QName siteType = _nodeService.getType(nodeRef);
     final String shortName = siteInfo.getShortName();
-    
+
     // Delete the associated groups
-    AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Object>()
-    {
-        public Void doWork() throws Exception
-        {
-            // Delete the master site group
-            final String siteGroup = _siteService.getSiteGroup(shortName);
-            if (_authorityService.authorityExists(siteGroup))
-            {
-                _authorityService.deleteAuthority(siteGroup, false);
+    AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Object>() {
+      public Void doWork() throws Exception {
+        // Delete the master site group
+        final String siteGroup = _siteService.getSiteGroup(shortName);
+        if (_authorityService.authorityExists(siteGroup)) {
+          _authorityService.deleteAuthority(siteGroup, false);
 
-                // Iterate over the role related groups and delete then
-                Set<String> permissions = _permissionService.getSettablePermissions(siteType);
-                for (String permission : permissions)
-                {
-                    String siteRoleGroup = _siteService.getSiteRoleGroup(shortName, permission);
+          // Iterate over the role related groups and delete then
+          Set<String> permissions = _permissionService.getSettablePermissions(siteType);
+          for (String permission : permissions) {
+            String siteRoleGroup = _siteService.getSiteRoleGroup(shortName, permission);
 
-                    // Delete the site role group
-                    _authorityService.deleteAuthority(siteRoleGroup);
-                }
-            }
-
-            return null;
+            // Delete the site role group
+            _authorityService.deleteAuthority(siteRoleGroup);
+          }
         }
+
+        return null;
+      }
     }, AuthenticationUtil.getSystemUserName());
 
   }
@@ -390,7 +387,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
 
         // creates the document
         final NodeRef document = _nodeService.createNode(finalParentNodeRef, ContentModel.ASSOC_CONTAINS, assocQName, nodeTypeQName, creationProperites).getChildRef();
-
+        assertNotNull("Created node is null!", document);
         // set the correct owner on the document
         AuthenticationUtil.runAsSystem(new RunAsWork<Void>() {
 
@@ -408,7 +405,7 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         });
 
         FileInfo fileInfo = _fileFolderService.getFileInfo(document);
-        
+
         ContentWriter writer = _contentService.getWriter(document, ContentModel.PROP_CONTENT, true);
 
         writer.guessEncoding();
@@ -418,7 +415,11 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
         InputStream content = inputStream != null ? inputStream : Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
 
         try {
-          writer.putContent(content);
+          if (content != null && content.available() > 0) {
+            writer.putContent(content);
+          } else {
+            writer.putContent("");
+          }
         } catch (Exception ex) {
           throw new RuntimeException(ex);
         } finally {
