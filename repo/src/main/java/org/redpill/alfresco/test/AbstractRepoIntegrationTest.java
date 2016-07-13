@@ -16,18 +16,21 @@ import javax.annotation.Resource;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.repo.policy.BehaviourFilter;
+import org.alfresco.repo.policy.PolicyComponent;
 import org.alfresco.repo.security.authentication.AuthenticationComponent;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.site.SiteModel;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
+import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.model.FileInfo;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.MutableAuthenticationService;
 import org.alfresco.service.cmr.security.OwnableService;
@@ -125,6 +128,18 @@ public abstract class AbstractRepoIntegrationTest implements InstanceTestClassLi
   @Autowired
   @Qualifier("OwnableService")
   protected OwnableService _ownableService;
+
+  @Autowired
+  @Qualifier("SearchService")
+  protected SearchService _searchService;
+
+  @Autowired
+  @Qualifier("DictionaryService")
+  protected DictionaryService _dictionaryService;
+
+  @Autowired
+  @Qualifier("policyComponent")
+  protected PolicyComponent _policyComponent;
 
   @Override
   public void beforeClassSetup() {

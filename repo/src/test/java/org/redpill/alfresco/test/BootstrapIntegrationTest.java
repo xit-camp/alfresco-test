@@ -25,5 +25,8 @@ public class BootstrapIntegrationTest extends AbstractRepoIntegrationTest {
     assertNotNull(_permissionService);
     assertNotNull(_properties);
     assertNotNull(_ownableService);
+    assertNotNull(_policyComponent);
+    assertNotNull(_searchService);
+    assertNotNull(_dictionaryService);
   }
 }
