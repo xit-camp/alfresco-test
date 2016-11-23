@@ -14,6 +14,7 @@
   </parent>
 
   <properties>
+    <!-- Default settings used for testing -->
     <alfresco.db.name>alf_dev</alfresco.db.name>
     <alfresco.db.username>alfresco</alfresco.db.username>
     <alfresco.db.password>alfresco</alfresco.db.password>
@@ -27,6 +28,7 @@
     <dependency>
       <groupId>${alfresco.groupId}</groupId>
       <artifactId>alfresco-repository</artifactId>
+      <scope>provided</scope>
     </dependency>
     
     <dependency>
@@ -34,6 +36,12 @@
       <artifactId>alfresco-repository</artifactId>
       <version>${alfresco.platform.version}</version>
       <classifier>h2scripts</classifier>
+      <exclusions>
+        <exclusion>
+          <artifactId>*</artifactId>
+          <groupId>*</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
         
     <!-- Test dependencies -->
@@ -55,6 +63,7 @@
           <artifactId>groovy-json</artifactId>
         </exclusion>
       </exclusions>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -71,6 +80,7 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
       <version>3.2.16.RELEASE</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -85,10 +95,12 @@
 
   <build>
     <plugins>
+      <!-- Skip the assemly plugin, we dont need an amp for this 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
       </plugin>
+      -->
     </plugins>
   </build>
 
