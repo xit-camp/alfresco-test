@@ -16,3 +16,5 @@ alf_data_dev
 
 .idea
 *.iml
+
+*.log

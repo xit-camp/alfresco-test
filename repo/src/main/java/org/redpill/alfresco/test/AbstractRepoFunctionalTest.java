@@ -1,6 +1,6 @@
 package org.redpill.alfresco.test;
 
-import static com.jayway.restassured.RestAssured.*;
+import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -14,10 +14,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.response.Response;
-import com.jayway.restassured.specification.RequestSpecification;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 
 public abstract class AbstractRepoFunctionalTest {
 
@@ -28,9 +28,8 @@ public abstract class AbstractRepoFunctionalTest {
   public static final String DEFAULT_HTTP_PORT = "8080";
 
   protected JSONObject getMetadata(String nodeRef) throws JSONException {
-    RestAssured.requestContentType(ContentType.JSON);
-    RestAssured.responseContentType(ContentType.JSON);
-
+    RestAssured.responseSpecification.request().contentType(ContentType.JSON);
+    RestAssured.responseSpecification.response().contentType(ContentType.JSON);
     Response response = given().baseUri(getBaseUri()).pathParam("nodeRef", nodeRef).expect().statusCode(200).when().get("/api/metadata?nodeRef={nodeRef}&shortQNames=true");
 
     if (LOG.isDebugEnabled()) {
@@ -41,8 +40,8 @@ public abstract class AbstractRepoFunctionalTest {
   }
 
   protected void updateDocument(String nodeRef, Map<String, String> properties) throws JSONException {
-    RestAssured.requestContentType(ContentType.JSON);
-    RestAssured.responseContentType(ContentType.JSON);
+    RestAssured.responseSpecification.request().contentType(ContentType.JSON);
+    RestAssured.responseSpecification.response().contentType(ContentType.JSON);
 
     JSONObject json = new JSONObject();
     json.put("properties", properties);
@@ -64,9 +63,8 @@ public abstract class AbstractRepoFunctionalTest {
   }
 
   protected JSONObject checkoutDocument(String nodeRef) throws JSONException {
-    RestAssured.requestContentType(ContentType.JSON);
-    RestAssured.responseContentType(ContentType.JSON);
-
+    RestAssured.responseSpecification.request().contentType(ContentType.JSON);
+    RestAssured.responseSpecification.response().contentType(ContentType.JSON);
     String storeType = "workspace";
     String storeId = "SpacesStore";
     String id = StringUtils.replace(nodeRef, "workspace://SpacesStore/", "");
@@ -78,8 +76,7 @@ public abstract class AbstractRepoFunctionalTest {
   }
 
   protected InputStream downloadDocument(String downloadUrl, String responseContentType) {
-    RestAssured.responseContentType(responseContentType);
-
+    RestAssured.responseSpecification.response().contentType(responseContentType);
     Response response = given()
         .baseUri(getBaseUri())
         .expect()
@@ -90,8 +87,8 @@ public abstract class AbstractRepoFunctionalTest {
   }
 
   protected JSONObject cancelCheckoutDocument(String nodeRef) throws JSONException {
-    RestAssured.requestContentType(ContentType.JSON);
-    RestAssured.responseContentType(ContentType.JSON);
+    RestAssured.responseSpecification.request().contentType(ContentType.JSON);
+    RestAssured.responseSpecification.response().contentType(ContentType.JSON);
 
     String storeType = "workspace";
     String storeId = "SpacesStore";
@@ -143,8 +140,8 @@ public abstract class AbstractRepoFunctionalTest {
   }
 
   protected void createSite(String shortName) {
-    RestAssured.requestContentType(ContentType.JSON);
-    RestAssured.responseContentType(ContentType.JSON);
+    RestAssured.responseSpecification.request().contentType(ContentType.JSON);
+    RestAssured.responseSpecification.response().contentType(ContentType.JSON);
 
     String visibility = "PRIVATE";
     String title = "Demoplats";
@@ -163,8 +160,8 @@ public abstract class AbstractRepoFunctionalTest {
   }
 
   protected JSONObject createUser(String username, String password, String firstname, String lastname, String email, Map<String, String> properties, List<String> groups) throws JSONException {
-    RestAssured.requestContentType(ContentType.JSON);
-    RestAssured.responseContentType(ContentType.JSON);
+    RestAssured.responseSpecification.request().contentType(ContentType.JSON);
+    RestAssured.responseSpecification.response().contentType(ContentType.JSON);
 
     JSONObject json = new JSONObject();
 
@@ -304,8 +301,8 @@ public abstract class AbstractRepoFunctionalTest {
   }
 
   protected void deleteSite(String shortName) {
-    RestAssured.requestContentType(ContentType.JSON);
-    RestAssured.responseContentType(ContentType.JSON);
+    RestAssured.responseSpecification.request().contentType(ContentType.JSON);
+    RestAssured.responseSpecification.response().contentType(ContentType.JSON);
 
     Response response = given()
         .baseUri(getBaseUri())
