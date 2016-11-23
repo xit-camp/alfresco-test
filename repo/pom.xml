@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>alfresco-test-repo</artifactId>
-  <name>Alfresco Platform/Repository JAR Module</name>
+  <name>Alfresco test - Platform Module</name>
   <description>Platform/Repo JAR Module (to be included in the alfresco.war) - part of AIO - SDK 3
   </description>
   <packaging>jar</packaging>
@@ -34,7 +34,6 @@
       <artifactId>alfresco-repository</artifactId>
       <version>${alfresco.platform.version}</version>
       <classifier>h2scripts</classifier>
-      <scope>test</scope>
     </dependency>
         
     <!-- Test dependencies -->
