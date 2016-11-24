@@ -17,14 +17,14 @@
     <alfresco.sdk.version>3.0.0-beta-5</alfresco.sdk.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <!-- Alfresco Data directory, which will contain:
     Content Store (i.e. the files we upload)
     Database (i.e. the metadata for the uploaded files)
     Search index (i.e. the indexed content and metadata)
    Configured in alfresco-global.properties with the 'dir.root' property.
     -->
-    <alfresco.data.location>${session.executionRootDirectory}/alf_data_dev</alfresco.data.location>
+    <alfresco.data.location>${project.build.directory}/alf_data_dev</alfresco.data.location>
 
     <!-- Duplicated with alfresco.solrHome in the plugin, we need them out here to do filtering -->
     <solr.home>${alfresco.data.location}/solr</solr.home>

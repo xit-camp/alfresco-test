@@ -70,7 +70,6 @@
           <artifactId>groovy-json</artifactId>
         </exclusion>
       </exclusions>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
