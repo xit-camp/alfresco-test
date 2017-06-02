@@ -5,7 +5,6 @@
  */
 package org.redpill.alfresco.test;
 
-import java.io.IOException;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
@@ -22,7 +21,6 @@ import java.util.Set;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.rad.test.AbstractAlfrescoIT;
-import org.alfresco.rad.test.AlfrescoTestRunner;
 import org.alfresco.rad.test.Remote;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.repo.policy.BehaviourFilter;
@@ -58,25 +56,16 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.springframework.context.ApplicationContext;
 
-
-//@RunWith(value = AlfrescoTestRunner.class)
-// Specifying the remote endpoint is not required, it
-// will default to http://localhost:8080/alfresco if
-// not provided. This shows the syntax but simply
-// sets the value back to the default value.
-//@Remote(endpoint = "http://localhost:8080/alfresco")
+@RunWith(value = PropertyConfigurableAlfrescoTestRunner.class)
 public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
 
   private static final Logger LOG = Logger.getLogger(AbstractComponentIT.class);
 
   private final static String NAMESPACE_BEGIN = "" + QName.NAMESPACE_BEGIN;
-  private final static String DEFAULT_HTTP_PORT = "8080";
   private boolean _requiresNew = true;
 
   protected AuthenticationComponent _authenticationComponent;
@@ -105,29 +94,29 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
 
   @Before
   public void setUpAbstract() {
-      _nodeService = getServiceRegistry().getNodeService();
-      _searchService = getServiceRegistry().getSearchService();
-      _dictionaryService = getServiceRegistry().getDictionaryService();
-      _ownableService = getServiceRegistry().getOwnableService();
-      _policyComponent = getServiceRegistry().getPolicyComponent();
-      _permissionService = getServiceRegistry().getPermissionService();
-      _authorityService = getServiceRegistry().getAuthorityService();
-      _workflowService = getServiceRegistry().getWorkflowService();
-      _contentService = getServiceRegistry().getContentService();
-      _namespaceService = getServiceRegistry().getNamespaceService();
-      _fileFolderService = getServiceRegistry().getFileFolderService();
-      _personService = getServiceRegistry().getPersonService();
-      _authenticationService = getServiceRegistry().getAuthenticationService();
-      _siteService = getServiceRegistry().getSiteService();
-      _transactionService = getServiceRegistry().getTransactionService();
+    _nodeService = getServiceRegistry().getNodeService();
+    _searchService = getServiceRegistry().getSearchService();
+    _dictionaryService = getServiceRegistry().getDictionaryService();
+    _ownableService = getServiceRegistry().getOwnableService();
+    _policyComponent = getServiceRegistry().getPolicyComponent();
+    _permissionService = getServiceRegistry().getPermissionService();
+    _authorityService = getServiceRegistry().getAuthorityService();
+    _workflowService = getServiceRegistry().getWorkflowService();
+    _contentService = getServiceRegistry().getContentService();
+    _namespaceService = getServiceRegistry().getNamespaceService();
+    _fileFolderService = getServiceRegistry().getFileFolderService();
+    _personService = getServiceRegistry().getPersonService();
+    _authenticationService = getServiceRegistry().getAuthenticationService();
+    _siteService = getServiceRegistry().getSiteService();
+    _transactionService = getServiceRegistry().getTransactionService();
 
-      _transactionHelper = _transactionService.getRetryingTransactionHelper();
+    _transactionHelper = _transactionService.getRetryingTransactionHelper();
 
-      ApplicationContext ctx = getApplicationContext();
-      _properties = (Properties) ctx.getBean("global-properties");
-      _repository = (Repository) ctx.getBean("repositoryHelper");
-      _behaviourFilter = (BehaviourFilter) ctx.getBean("policyBehaviourFilter");
-      _authenticationComponent = (AuthenticationComponent) ctx.getBean("authenticationComponent");
+    ApplicationContext ctx = getApplicationContext();
+    _properties = (Properties) ctx.getBean("global-properties");
+    _repository = (Repository) ctx.getBean("repositoryHelper");
+    _behaviourFilter = (BehaviourFilter) ctx.getBean("policyBehaviourFilter");
+    _authenticationComponent = (AuthenticationComponent) ctx.getBean("authenticationComponent");
   }
 
   /**

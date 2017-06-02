@@ -18,32 +18,23 @@
 package org.redpill.alfresco.test.it;
 
 import org.redpill.alfresco.platformsample.*;
-import org.alfresco.rad.test.AlfrescoTestRunner;
-import org.alfresco.rad.test.Remote;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.site.SiteInfo;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.redpill.alfresco.test.AbstractComponentIT;
 
-@RunWith(value = AlfrescoTestRunner.class)
-// Specifying the remote endpoint is not required, it
-// will default to http://localhost:8080/alfresco if
-// not provided. This shows the syntax but simply
-// sets the value back to the default value.
-@Remote(endpoint = "http://localhost:8765/alfresco")
 public class RLAbstractComponentIT extends AbstractComponentIT {
 
   @Before
   public void setUp() {
-   
+
   }
-  
+
   @Test
   public void testGetCompanyHome() {
     DemoComponent demoComponent = (DemoComponent) getApplicationContext().getBean("org.redpill-linpro.alfresco.DemoComponent");
@@ -64,13 +55,13 @@ public class RLAbstractComponentIT extends AbstractComponentIT {
     // There are 7 folders by default under Company Home
     assertEquals(7, childNodeCount);
   }
-  
+
   @Test
   public void testBackwardCompatability() {
     SiteInfo createSite = createSite();
     deleteSite(createSite);
   }
-  
+
   @Test
   public void testComponentsAreWired() {
     assertNotNull(_authenticationComponent);
