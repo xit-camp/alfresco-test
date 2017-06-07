@@ -394,6 +394,15 @@
       <id>alfresco-private-repository</id>
       <url>https://artifacts.alfresco.com/nexus/content/groups/private</url>
     </repository>
+    <!-- Redpill Linpro repository -->
+    <repository>
+      <id>redpill-linpro</id>
+      <url>https://maven.redpill-linpro.com/nexus/content/groups/public</url>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+      </snapshots>
+    </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
