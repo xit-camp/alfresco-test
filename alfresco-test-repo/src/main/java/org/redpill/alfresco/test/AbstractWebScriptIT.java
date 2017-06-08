@@ -32,7 +32,8 @@ public abstract class AbstractWebScriptIT {
   private final static Logger LOG = Logger.getLogger(AbstractWebScriptIT.class);
 
   public static final String DEFAULT_BASE_URI = "http://localhost:%s/alfresco/service";
-
+  public static final String DEFAULT_API_URI = "http://localhost:%s/alfresco/api/-default-/public/alfresco/versions";
+  
   public static final String DEFAULT_HTTP_PORT = "8080";
 
   @Before
@@ -50,7 +51,8 @@ public abstract class AbstractWebScriptIT {
   }
 
   protected void authenticate(String username, String password) {
-    RestAssured.authentication = basic("admin", "admin");
+    RestAssured.authentication = preemptive().basic("admin", "admin");
+
   }
 
   protected JSONObject getMetadata(String nodeRef) throws JSONException {
@@ -585,6 +587,23 @@ public abstract class AbstractWebScriptIT {
     assertEquals(0, metadata.length());
   }
 
+  protected String getBaseApiUri() {
+    final Properties properties = new Properties();
+    InputStream stream = null;
+    try {
+      stream = this.getClass().getResourceAsStream("/rl-testingproperties.properties");
+      properties.load(stream);
+
+    } catch (IOException ex) {
+      LOG.error("Could not load properties file", ex);
+    } finally {
+      IOUtils.closeQuietly(stream);
+    }
+    String port = properties.getProperty("test.alfresco.tomcat.port", DEFAULT_HTTP_PORT);
+    
+    return String.format(DEFAULT_API_URI, port);
+  }
+  
   protected String getBaseUri() {
     final Properties properties = new Properties();
     InputStream stream = null;
@@ -600,6 +619,18 @@ public abstract class AbstractWebScriptIT {
     String port = properties.getProperty("test.alfresco.tomcat.port", DEFAULT_HTTP_PORT);
     
     return String.format(DEFAULT_BASE_URI, port);
+  }
+  
+  protected void deleteDocument(String nodeRef) throws JSONException {
+
+    String id = StringUtils.replace(nodeRef, "workspace://SpacesStore/", "");
+
+    Response response = given()
+            .contentType(ContentType.JSON)
+            .baseUri(getBaseApiUri())
+            .pathParam("id", id)
+            .expect().statusCode(204)
+            .when().delete("/1/nodes/{id}");
   }
 
 }

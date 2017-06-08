@@ -10,9 +10,6 @@ import static org.junit.Assert.fail;
 
 import java.io.InputStream;
 import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +18,6 @@ import java.util.Set;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.rad.test.AbstractAlfrescoIT;
-import org.alfresco.rad.test.Remote;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.policy.PolicyComponent;
@@ -32,8 +28,10 @@ import org.alfresco.repo.site.SiteModel;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.service.cmr.model.FileExistsException;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.model.FileInfo;
+import org.alfresco.service.cmr.model.FileNotFoundException;
 import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -137,57 +135,107 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
    * @return
    */
   protected NodeRef createUser(final String userId, final CreateUserCallback callback) {
-    return AuthenticationUtil.runAsSystem(new RunAsWork<NodeRef>() {
-
+    return _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
       @Override
-      public NodeRef doWork() throws Exception {
-        if (!_authenticationService.authenticationExists(userId)) {
-          _authenticationService.createAuthentication(userId, "password".toCharArray());
-          PropertyMap properties = new PropertyMap(3);
-          properties.put(ContentModel.PROP_USERNAME, userId);
-          properties.put(ContentModel.PROP_FIRSTNAME, userId);
-          properties.put(ContentModel.PROP_LASTNAME, "Test");
-          properties.put(ContentModel.PROP_EMAIL, _properties.getProperty("mail.to.default"));
+      public NodeRef execute() throws Throwable {
+        return AuthenticationUtil.runAsSystem(new RunAsWork<NodeRef>() {
 
-          NodeRef user = _personService.createPerson(properties);
+          @Override
+          public NodeRef doWork() throws Exception {
+            if (!_authenticationService.authenticationExists(userId)) {
+              _authenticationService.createAuthentication(userId, "password".toCharArray());
+              PropertyMap properties = new PropertyMap(3);
+              properties.put(ContentModel.PROP_USERNAME, userId);
+              properties.put(ContentModel.PROP_FIRSTNAME, userId);
+              properties.put(ContentModel.PROP_LASTNAME, "Test");
+              properties.put(ContentModel.PROP_EMAIL, _properties.getProperty("mail.to.default"));
 
-          if (callback != null) {
-            callback.onCreateUser(user);
+              NodeRef user = _personService.createPerson(properties);
+
+              if (callback != null) {
+                callback.onCreateUser(user);
+              }
+
+              return user;
+            } else {
+              fail("User exists: " + userId);
+              return null;
+            }
           }
 
-          return user;
-        } else {
-          fail("User exists: " + userId);
-          return null;
-        }
+        });
       }
+    }, false, _requiresNew);
+  }
 
-    });
+  protected Void setSiteMembership(final String shortName, final String authorityName, final String role) {
+    return _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
+      @Override
+      public Void execute() throws Throwable {
+        return AuthenticationUtil.runAsSystem(new RunAsWork<Void>() {
+          @Override
+          public Void doWork() throws Exception {
+            _siteService.setMembership(shortName, authorityName, role);
+            return null;
+          }
+        });
+      }
+    }, false, _requiresNew);
+  }
+
+  protected NodeRef getSiteDoclib(final String shortName) {
+    return _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
+      @Override
+      public NodeRef execute() throws Throwable {
+        return AuthenticationUtil.runAsSystem(new RunAsWork<NodeRef>() {
+          @Override
+          public NodeRef doWork() throws Exception {
+            NodeRef documentLibrary = _siteService.getContainer(shortName, SiteService.DOCUMENT_LIBRARY);
+            if (documentLibrary == null) {
+              documentLibrary = _siteService.createContainer(shortName, SiteService.DOCUMENT_LIBRARY, ContentModel.TYPE_FOLDER, null);
+            }
+            return documentLibrary;
+          }
+        });
+      }
+    }, false, _requiresNew);
   }
 
   protected void deleteUser(final NodeRef personRef) {
-    AuthenticationUtil.runAsSystem(new RunAsWork<Void>() {
-
+    _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
       @Override
-      public Void doWork() throws Exception {
-        _personService.deletePerson(personRef);
+      public Void execute() throws Throwable {
+        AuthenticationUtil.runAsSystem(new RunAsWork<Void>() {
 
+          @Override
+          public Void doWork() throws Exception {
+            _personService.deletePerson(personRef);
+
+            return null;
+          }
+
+        });
         return null;
       }
-
-    });
+    }, false, _requiresNew);
   }
 
   protected void deleteUser(final String userName) {
-    AuthenticationUtil.runAsSystem(new RunAsWork<Void>() {
-
+    _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
       @Override
-      public Void doWork() throws Exception {
-        _personService.deletePerson(userName);
+      public Void execute() throws Throwable {
+        AuthenticationUtil.runAsSystem(new RunAsWork<Void>() {
 
+          @Override
+          public Void doWork() throws Exception {
+            _personService.deletePerson(userName);
+
+            return null;
+          }
+        });
         return null;
       }
-    });
+    }, false, _requiresNew);
   }
 
   /**
@@ -281,33 +329,40 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
 
   }
 
-  protected void deleteLingeringSiteGroups(SiteInfo siteInfo) {
-    final NodeRef nodeRef = siteInfo.getNodeRef();
-    final QName siteType = _nodeService.getType(nodeRef);
-    final String shortName = siteInfo.getShortName();
+  protected void deleteLingeringSiteGroups(final SiteInfo siteInfo) {
+    _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
 
-    // Delete the associated groups
-    AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Object>() {
-      public Void doWork() throws Exception {
-        // Delete the master site group
-        final String siteGroup = _siteService.getSiteGroup(shortName);
-        if (_authorityService.authorityExists(siteGroup)) {
-          _authorityService.deleteAuthority(siteGroup, false);
+      @Override
+      public Void execute() throws Throwable {
+        final NodeRef nodeRef = siteInfo.getNodeRef();
+        final QName siteType = _nodeService.getType(nodeRef);
+        final String shortName = siteInfo.getShortName();
 
-          // Iterate over the role related groups and delete then
-          Set<String> permissions = _permissionService.getSettablePermissions(siteType);
-          for (String permission : permissions) {
-            String siteRoleGroup = _siteService.getSiteRoleGroup(shortName, permission);
+        // Delete the associated groups
+        AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Object>() {
+          public Void doWork() throws Exception {
+            // Delete the master site group
+            final String siteGroup = _siteService.getSiteGroup(shortName);
+            if (_authorityService.authorityExists(siteGroup)) {
+              _authorityService.deleteAuthority(siteGroup, false);
 
-            // Delete the site role group
-            _authorityService.deleteAuthority(siteRoleGroup);
+              // Iterate over the role related groups and delete then
+              Set<String> permissions = _permissionService.getSettablePermissions(siteType);
+              for (String permission : permissions) {
+                String siteRoleGroup = _siteService.getSiteRoleGroup(shortName, permission);
+
+                // Delete the site role group
+                _authorityService.deleteAuthority(siteRoleGroup);
+              }
+            }
+
+            return null;
           }
-        }
-
+        }, AuthenticationUtil.getSystemUserName());
         return null;
       }
-    }, AuthenticationUtil.getSystemUserName());
 
+    }, false, _requiresNew);
   }
 
   protected FileInfo uploadDocument(SiteInfo site, String filename) {
@@ -433,6 +488,7 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
       throw new RuntimeException(ex);
     } finally {
       deleteSite(site);
+
     }
   }
 
@@ -448,6 +504,7 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
 
   public boolean isRequiresNew() {
     return _requiresNew;
+
   }
 
   public interface CreateUserCallback {
@@ -468,55 +525,48 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
 
   }
 
-  public void assertType(String message, NodeRef node, QName type) {
-    if (!_nodeService.getType(node).isMatch(type)) {
-      fail(message);
-    }
+  public void assertType(final String message, final NodeRef node, final QName type) {
+    _transactionHelper.doInTransaction(new RetryingTransactionCallback<Void>() {
+
+      @Override
+      public Void execute() throws Throwable {
+        if (!_nodeService.getType(node).isMatch(type)) {
+          fail(message);
+        }
+        return null;
+      }
+    }, false, _requiresNew);
   }
 
   public void assertType(NodeRef node, QName type) {
     assertType(null, node, type);
   }
 
-  public void assertHasAspect(String message, NodeRef node, QName aspect) {
-    if (!_nodeService.hasAspect(node, aspect)) {
-      fail(message);
-    }
+  public void assertHasAspect(final String message, final NodeRef node, final QName aspect) {
+    _transactionHelper.doInTransaction(new RetryingTransactionCallback<Void>() {
+
+      @Override
+      public Void execute() throws Throwable {
+        if (!_nodeService.hasAspect(node, aspect)) {
+          fail(message);
+        }
+        return null;
+      }
+    }, false, _requiresNew);
   }
 
   public void assertHasAspect(NodeRef node, QName aspect) {
     assertHasAspect(null, node, aspect);
   }
-
-  public void setEndpointValue(String endpoint) {
-    final Remote classAnnotation;
-    classAnnotation = getClass().getAnnotation(Remote.class);
-    System.out.println("old Remote endpoint = " + classAnnotation.endpoint());
-    changeAnnotationValue(classAnnotation, "endpoint", endpoint);
-    System.out.println("modified Remote endpoint  = " + classAnnotation.endpoint());
+  
+    protected FileInfo copyNode(final NodeRef sourceNodeRef, final NodeRef targetParentRef, final String newName)
+          throws FileExistsException, FileNotFoundException {
+    return _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<FileInfo>() {
+      @Override
+      public FileInfo execute() throws Throwable {
+        return _fileFolderService.copy(sourceNodeRef, targetParentRef, newName);
+      }
+    }, false, isRequiresNew());
   }
 
-  @SuppressWarnings("unchecked")
-  public static Object changeAnnotationValue(Annotation annotation, String key, Object newValue) {
-    Object handler = Proxy.getInvocationHandler(annotation);
-    Field f;
-    try {
-      f = handler.getClass().getDeclaredField("memberValues");
-    } catch (NoSuchFieldException | SecurityException e) {
-      throw new IllegalStateException(e);
-    }
-    f.setAccessible(true);
-    Map<String, Object> memberValues;
-    try {
-      memberValues = (Map<String, Object>) f.get(handler);
-    } catch (IllegalArgumentException | IllegalAccessException e) {
-      throw new IllegalStateException(e);
-    }
-    Object oldValue = memberValues.get(key);
-    if (oldValue == null || oldValue.getClass() != newValue.getClass()) {
-      throw new IllegalArgumentException();
-    }
-    memberValues.put(key, newValue);
-    return oldValue;
-  }
 }
