@@ -33,7 +33,7 @@ public abstract class AbstractWebScriptIT {
 
   public static final String DEFAULT_BASE_URI = "http://localhost:%s/alfresco/service";
   public static final String DEFAULT_API_URI = "http://localhost:%s/alfresco/api/-default-/public/alfresco/versions";
-  
+
   public static final String DEFAULT_HTTP_PORT = "8080";
 
   @Before
@@ -99,13 +99,17 @@ public abstract class AbstractWebScriptIT {
   }
 
   protected InputStream downloadDocument(String downloadUrl, String responseContentType) {
-
+    if (responseContentType == null) {
+      responseContentType = ContentType.JSON.toString();
+    }
     Response response = given()
             .contentType(ContentType.JSON)
             .baseUri(getBaseUri())
             .expect()
+            .contentType(responseContentType)
             .statusCode(200)
-            .when().get(downloadUrl);
+            .when()
+            .get(downloadUrl);
 
     return response.getBody().asInputStream();
   }
@@ -600,10 +604,10 @@ public abstract class AbstractWebScriptIT {
       IOUtils.closeQuietly(stream);
     }
     String port = properties.getProperty("test.alfresco.tomcat.port", DEFAULT_HTTP_PORT);
-    
+
     return String.format(DEFAULT_API_URI, port);
   }
-  
+
   protected String getBaseUri() {
     final Properties properties = new Properties();
     InputStream stream = null;
@@ -617,10 +621,10 @@ public abstract class AbstractWebScriptIT {
       IOUtils.closeQuietly(stream);
     }
     String port = properties.getProperty("test.alfresco.tomcat.port", DEFAULT_HTTP_PORT);
-    
+
     return String.format(DEFAULT_BASE_URI, port);
   }
-  
+
   protected void deleteDocument(String nodeRef) throws JSONException {
 
     String id = StringUtils.replace(nodeRef, "workspace://SpacesStore/", "");
