@@ -5,6 +5,7 @@
  */
 package org.redpill.alfresco.test;
 
+import java.io.IOException;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
@@ -64,57 +65,58 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
   private static final Logger LOG = Logger.getLogger(AbstractComponentIT.class);
 
   private final static String NAMESPACE_BEGIN = "" + QName.NAMESPACE_BEGIN;
+
   private boolean _requiresNew = true;
 
-  protected AuthenticationComponent _authenticationComponent;
-  protected TransactionService _transactionService;
+  protected AuthenticationComponent authenticationComponent;
+  protected TransactionService transactionService;
 
-  protected static RetryingTransactionHelper _transactionHelper;
-  protected BehaviourFilter _behaviourFilter;
-  protected Repository _repository;
-  protected SiteService _siteService;
-  protected MutableAuthenticationService _authenticationService;
-  protected PersonService _personService;
-  protected NodeService _nodeService;
-  protected FileFolderService _fileFolderService;
-  protected NamespaceService _namespaceService;
-  protected ContentService _contentService;
-  protected WorkflowService _workflowService;
-  protected AuthorityService _authorityService;
+  protected static RetryingTransactionHelper transactionHelper;
+  protected BehaviourFilter behaviourFilter;
+  protected Repository repository;
+  protected SiteService siteService;
+  protected MutableAuthenticationService authenticationService;
+  protected PersonService personService;
+  protected NodeService nodeService;
+  protected FileFolderService fileFolderService;
+  protected NamespaceService namespaceService;
+  protected ContentService contentService;
+  protected WorkflowService workflowService;
+  protected AuthorityService authorityService;
 
-  protected PermissionService _permissionService;
-  protected Properties _properties;
+  protected PermissionService permissionService;
+  protected Properties properties;
 
-  protected OwnableService _ownableService;
-  protected SearchService _searchService;
-  protected DictionaryService _dictionaryService;
-  protected PolicyComponent _policyComponent;
+  protected OwnableService ownableService;
+  protected SearchService searchService;
+  protected DictionaryService dictionaryService;
+  protected PolicyComponent policyComponent;
 
   @Before
   public void setUpAbstract() {
-    _nodeService = getServiceRegistry().getNodeService();
-    _searchService = getServiceRegistry().getSearchService();
-    _dictionaryService = getServiceRegistry().getDictionaryService();
-    _ownableService = getServiceRegistry().getOwnableService();
-    _policyComponent = getServiceRegistry().getPolicyComponent();
-    _permissionService = getServiceRegistry().getPermissionService();
-    _authorityService = getServiceRegistry().getAuthorityService();
-    _workflowService = getServiceRegistry().getWorkflowService();
-    _contentService = getServiceRegistry().getContentService();
-    _namespaceService = getServiceRegistry().getNamespaceService();
-    _fileFolderService = getServiceRegistry().getFileFolderService();
-    _personService = getServiceRegistry().getPersonService();
-    _authenticationService = getServiceRegistry().getAuthenticationService();
-    _siteService = getServiceRegistry().getSiteService();
-    _transactionService = getServiceRegistry().getTransactionService();
+    nodeService = getServiceRegistry().getNodeService();
+    searchService = getServiceRegistry().getSearchService();
+    dictionaryService = getServiceRegistry().getDictionaryService();
+    ownableService = getServiceRegistry().getOwnableService();
+    policyComponent = getServiceRegistry().getPolicyComponent();
+    permissionService = getServiceRegistry().getPermissionService();
+    authorityService = getServiceRegistry().getAuthorityService();
+    workflowService = getServiceRegistry().getWorkflowService();
+    contentService = getServiceRegistry().getContentService();
+    namespaceService = getServiceRegistry().getNamespaceService();
+    fileFolderService = getServiceRegistry().getFileFolderService();
+    personService = getServiceRegistry().getPersonService();
+    authenticationService = getServiceRegistry().getAuthenticationService();
+    siteService = getServiceRegistry().getSiteService();
+    transactionService = getServiceRegistry().getTransactionService();
 
-    _transactionHelper = _transactionService.getRetryingTransactionHelper();
+    transactionHelper = transactionService.getRetryingTransactionHelper();
 
     ApplicationContext ctx = getApplicationContext();
-    _properties = (Properties) ctx.getBean("global-properties");
-    _repository = (Repository) ctx.getBean("repositoryHelper");
-    _behaviourFilter = (BehaviourFilter) ctx.getBean("policyBehaviourFilter");
-    _authenticationComponent = (AuthenticationComponent) ctx.getBean("authenticationComponent");
+    properties = (Properties) ctx.getBean("global-properties");
+    repository = (Repository) ctx.getBean("repositoryHelper");
+    behaviourFilter = (BehaviourFilter) ctx.getBean("policyBehaviourFilter");
+    authenticationComponent = (AuthenticationComponent) ctx.getBean("authenticationComponent");
   }
 
   /**
@@ -135,22 +137,22 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
    * @return
    */
   protected NodeRef createUser(final String userId, final CreateUserCallback callback) {
-    return _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
+    return transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
       @Override
       public NodeRef execute() throws Throwable {
         return AuthenticationUtil.runAsSystem(new RunAsWork<NodeRef>() {
 
           @Override
           public NodeRef doWork() throws Exception {
-            if (!_authenticationService.authenticationExists(userId)) {
-              _authenticationService.createAuthentication(userId, "password".toCharArray());
+            if (!authenticationService.authenticationExists(userId)) {
+              authenticationService.createAuthentication(userId, "password".toCharArray());
               PropertyMap properties = new PropertyMap(3);
               properties.put(ContentModel.PROP_USERNAME, userId);
               properties.put(ContentModel.PROP_FIRSTNAME, userId);
               properties.put(ContentModel.PROP_LASTNAME, "Test");
-              properties.put(ContentModel.PROP_EMAIL, _properties.getProperty("mail.to.default"));
+              properties.put(ContentModel.PROP_EMAIL, AbstractComponentIT.this.properties.getProperty("mail.to.default"));
 
-              NodeRef user = _personService.createPerson(properties);
+              NodeRef user = personService.createPerson(properties);
 
               if (callback != null) {
                 callback.onCreateUser(user);
@@ -169,13 +171,13 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
   }
 
   protected Void setSiteMembership(final String shortName, final String authorityName, final String role) {
-    return _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
+    return transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
       @Override
       public Void execute() throws Throwable {
         return AuthenticationUtil.runAsSystem(new RunAsWork<Void>() {
           @Override
           public Void doWork() throws Exception {
-            _siteService.setMembership(shortName, authorityName, role);
+            siteService.setMembership(shortName, authorityName, role);
             return null;
           }
         });
@@ -184,32 +186,49 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
   }
 
   protected NodeRef getSiteDoclib(final String shortName) {
-    return _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
-      @Override
-      public NodeRef execute() throws Throwable {
-        return AuthenticationUtil.runAsSystem(new RunAsWork<NodeRef>() {
-          @Override
-          public NodeRef doWork() throws Exception {
-            NodeRef documentLibrary = _siteService.getContainer(shortName, SiteService.DOCUMENT_LIBRARY);
-            if (documentLibrary == null) {
-              documentLibrary = _siteService.createContainer(shortName, SiteService.DOCUMENT_LIBRARY, ContentModel.TYPE_FOLDER, null);
+    return getSiteDoclib(shortName, true);
+  }
+
+  protected NodeRef getSiteDoclib(final String shortName, final boolean runAsSystem) {
+    if (runAsSystem) {
+      return transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
+        @Override
+        public NodeRef execute() throws Throwable {
+          return AuthenticationUtil.runAsSystem(new RunAsWork<NodeRef>() {
+            @Override
+            public NodeRef doWork() throws Exception {
+              NodeRef documentLibrary = siteService.getContainer(shortName, SiteService.DOCUMENT_LIBRARY);
+              if (documentLibrary == null) {
+                documentLibrary = siteService.createContainer(shortName, SiteService.DOCUMENT_LIBRARY, ContentModel.TYPE_FOLDER, null);
+              }
+              return documentLibrary;
             }
-            return documentLibrary;
+          });
+        }
+      }, false, _requiresNew);
+    } else {
+      return transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
+        @Override
+        public NodeRef execute() throws Throwable {
+          NodeRef documentLibrary = siteService.getContainer(shortName, SiteService.DOCUMENT_LIBRARY);
+          if (documentLibrary == null) {
+            documentLibrary = siteService.createContainer(shortName, SiteService.DOCUMENT_LIBRARY, ContentModel.TYPE_FOLDER, null);
           }
-        });
-      }
-    }, false, _requiresNew);
+          return documentLibrary;
+        }
+      }, false, _requiresNew);
+    }
   }
 
   protected void deleteUser(final NodeRef personRef) {
-    _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
+    transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
       @Override
       public Void execute() throws Throwable {
         AuthenticationUtil.runAsSystem(new RunAsWork<Void>() {
 
           @Override
           public Void doWork() throws Exception {
-            _personService.deletePerson(personRef);
+            personService.deletePerson(personRef);
 
             return null;
           }
@@ -221,14 +240,14 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
   }
 
   protected void deleteUser(final String userName) {
-    _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
+    transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
       @Override
       public Void execute() throws Throwable {
         AuthenticationUtil.runAsSystem(new RunAsWork<Void>() {
 
           @Override
           public Void doWork() throws Exception {
-            _personService.deletePerson(userName);
+            personService.deletePerson(userName);
 
             return null;
           }
@@ -248,7 +267,7 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
    * @return
    */
   protected SiteInfo createSite(final String preset, final String siteName, final SiteVisibility visibility, final QName siteType, final CreateSiteCallback callback) {
-    return _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<SiteInfo>() {
+    return transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<SiteInfo>() {
 
       @Override
       public SiteInfo execute() throws Throwable {
@@ -261,7 +280,7 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
           name = siteName;
         }
 
-        SiteInfo site = _siteService.createSite(preset, name, name, name, visibility, siteType);
+        SiteInfo site = siteService.createSite(preset, name, name, name, visibility, siteType);
 
         if (callback != null) {
           callback.onCreateSite(site);
@@ -269,13 +288,13 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
 
         assertNotNull(site);
 
-        _nodeService.addAspect(site.getNodeRef(), ContentModel.ASPECT_TEMPORARY, null);
+        nodeService.addAspect(site.getNodeRef(), ContentModel.ASPECT_TEMPORARY, null);
 
         // Create document library container
-        NodeRef documentLibrary = _siteService.getContainer(name, SiteService.DOCUMENT_LIBRARY);
+        NodeRef documentLibrary = siteService.getContainer(name, SiteService.DOCUMENT_LIBRARY);
 
         if (documentLibrary == null) {
-          documentLibrary = _siteService.createContainer(name, SiteService.DOCUMENT_LIBRARY, ContentModel.TYPE_FOLDER, null);
+          documentLibrary = siteService.createContainer(name, SiteService.DOCUMENT_LIBRARY, ContentModel.TYPE_FOLDER, null);
         }
 
         assertNotNull(documentLibrary);
@@ -287,7 +306,7 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
   }
 
   protected SiteInfo createSite(final String preset) {
-    return _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<SiteInfo>() {
+    return transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<SiteInfo>() {
 
       @Override
       public SiteInfo execute() throws Throwable {
@@ -306,7 +325,7 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
   }
 
   protected void deleteSite(final SiteInfo siteInfo, final BeforeDeleteSiteCallback callback) {
-    _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
+    transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
 
       @Override
       public Void execute() throws Throwable {
@@ -318,7 +337,7 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
         }
 
         deleteLingeringSiteGroups(siteInfo);
-        _siteService.deleteSite(siteInfo.getShortName());
+        siteService.deleteSite(siteInfo.getShortName());
 
         System.out.println("deleted site with shortName: " + siteInfo.getShortName());
         AuthenticationUtil.setFullyAuthenticatedUser(fullyAuthenticatedUser);
@@ -330,29 +349,29 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
   }
 
   protected void deleteLingeringSiteGroups(final SiteInfo siteInfo) {
-    _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
+    transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Void>() {
 
       @Override
       public Void execute() throws Throwable {
         final NodeRef nodeRef = siteInfo.getNodeRef();
-        final QName siteType = _nodeService.getType(nodeRef);
+        final QName siteType = nodeService.getType(nodeRef);
         final String shortName = siteInfo.getShortName();
 
         // Delete the associated groups
         AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Object>() {
           public Void doWork() throws Exception {
             // Delete the master site group
-            final String siteGroup = _siteService.getSiteGroup(shortName);
-            if (_authorityService.authorityExists(siteGroup)) {
-              _authorityService.deleteAuthority(siteGroup, false);
+            final String siteGroup = siteService.getSiteGroup(shortName);
+            if (authorityService.authorityExists(siteGroup)) {
+              authorityService.deleteAuthority(siteGroup, false);
 
               // Iterate over the role related groups and delete then
-              Set<String> permissions = _permissionService.getSettablePermissions(siteType);
+              Set<String> permissions = permissionService.getSettablePermissions(siteType);
               for (String permission : permissions) {
-                String siteRoleGroup = _siteService.getSiteRoleGroup(shortName, permission);
+                String siteRoleGroup = siteService.getSiteRoleGroup(shortName, permission);
 
                 // Delete the site role group
-                _authorityService.deleteAuthority(siteRoleGroup);
+                authorityService.deleteAuthority(siteRoleGroup);
               }
             }
 
@@ -391,7 +410,7 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
 
   protected FileInfo uploadDocument(final SiteInfo site, final String filename, final InputStream inputStream, final List<String> folders, final String name, final NodeRef parentNodeRef,
           final String type, final Map<QName, Serializable> properties) {
-    return _transactionHelper.doInTransaction(new RetryingTransactionCallback<FileInfo>() {
+    return transactionHelper.doInTransaction(new RetryingTransactionCallback<FileInfo>() {
 
       @Override
       public FileInfo execute() throws Throwable {
@@ -400,13 +419,13 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
 
         // gets the folder to create the document in, if it's a site then it's
         // the documentLibrary, if not then it's the user home
-        NodeRef documentLibrary = site != null ? _siteService.getContainer(site.getShortName(), SiteService.DOCUMENT_LIBRARY) : _repository.getUserHome(_repository.getPerson());
+        NodeRef documentLibrary = site != null ? siteService.getContainer(site.getShortName(), SiteService.DOCUMENT_LIBRARY) : repository.getUserHome(repository.getPerson());
 
         NodeRef finalParentNodeRef = parentNodeRef != null ? parentNodeRef : documentLibrary;
 
         if (folders != null) {
           for (String folder : folders) {
-            FileInfo folderInfo = _fileFolderService.create(finalParentNodeRef, folder, ContentModel.TYPE_FOLDER);
+            FileInfo folderInfo = fileFolderService.create(finalParentNodeRef, folder, ContentModel.TYPE_FOLDER);
             finalParentNodeRef = folderInfo.getNodeRef();
           }
         }
@@ -424,7 +443,7 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
         LOG.trace("Node type: " + nodeTypeQName);
 
         // creates the document
-        final NodeRef document = _nodeService.createNode(finalParentNodeRef, ContentModel.ASSOC_CONTAINS, assocQName, nodeTypeQName, creationProperites).getChildRef();
+        final NodeRef document = nodeService.createNode(finalParentNodeRef, ContentModel.ASSOC_CONTAINS, assocQName, nodeTypeQName, creationProperites).getChildRef();
         assertNotNull("Created node is null!", document);
         // set the correct owner on the document
         AuthenticationUtil.runAsSystem(new RunAsWork<Void>() {
@@ -435,28 +454,28 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
 
             LOG.debug("Setting owner of '" + document + "' to '" + username + "'");
 
-            _ownableService.setOwner(document, username);
+            ownableService.setOwner(document, username);
 
             return null;
           }
 
         });
 
-        FileInfo fileInfo = _fileFolderService.getFileInfo(document);
+        FileInfo fileInfo = fileFolderService.getFileInfo(document);
 
-        ContentWriter writer = _contentService.getWriter(document, ContentModel.PROP_CONTENT, true);
+        ContentWriter writer = contentService.getWriter(document, ContentModel.PROP_CONTENT, true);
 
         writer.guessEncoding();
 
         writer.guessMimetype(filename);
 
-        InputStream content = inputStream != null ? inputStream : Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
+        InputStream content = inputStream != null ? inputStream : getClass().getResourceAsStream(filename);
 
         try {
           if (content != null && content.available() > 0) {
             writer.putContent(content);
           } else {
-            writer.putContent("");
+            throw new IOException("Empty content stream. Usually a consequence of that the file could not be read.");
           }
         } catch (Exception ex) {
           throw new RuntimeException(ex);
@@ -474,7 +493,7 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
     if (s.indexOf(NAMESPACE_BEGIN) != -1) {
       qname = QName.createQName(s);
     } else {
-      qname = QName.createQName(s, _namespaceService);
+      qname = QName.createQName(s, namespaceService);
     }
     return qname;
   }
@@ -526,11 +545,11 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
   }
 
   public void assertType(final String message, final NodeRef node, final QName type) {
-    _transactionHelper.doInTransaction(new RetryingTransactionCallback<Void>() {
+    transactionHelper.doInTransaction(new RetryingTransactionCallback<Void>() {
 
       @Override
       public Void execute() throws Throwable {
-        if (!_nodeService.getType(node).isMatch(type)) {
+        if (!nodeService.getType(node).isMatch(type)) {
           fail(message);
         }
         return null;
@@ -543,11 +562,11 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
   }
 
   public void assertHasAspect(final String message, final NodeRef node, final QName aspect) {
-    _transactionHelper.doInTransaction(new RetryingTransactionCallback<Void>() {
+    transactionHelper.doInTransaction(new RetryingTransactionCallback<Void>() {
 
       @Override
       public Void execute() throws Throwable {
-        if (!_nodeService.hasAspect(node, aspect)) {
+        if (!nodeService.hasAspect(node, aspect)) {
           fail(message);
         }
         return null;
@@ -558,13 +577,13 @@ public abstract class AbstractComponentIT extends AbstractAlfrescoIT {
   public void assertHasAspect(NodeRef node, QName aspect) {
     assertHasAspect(null, node, aspect);
   }
-  
-    protected FileInfo copyNode(final NodeRef sourceNodeRef, final NodeRef targetParentRef, final String newName)
+
+  protected FileInfo copyNode(final NodeRef sourceNodeRef, final NodeRef targetParentRef, final String newName)
           throws FileExistsException, FileNotFoundException {
-    return _transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<FileInfo>() {
+    return transactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<FileInfo>() {
       @Override
       public FileInfo execute() throws Throwable {
-        return _fileFolderService.copy(sourceNodeRef, targetParentRef, newName);
+        return fileFolderService.copy(sourceNodeRef, targetParentRef, newName);
       }
     }, false, isRequiresNew());
   }

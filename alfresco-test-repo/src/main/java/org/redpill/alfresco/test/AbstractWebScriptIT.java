@@ -51,7 +51,7 @@ public abstract class AbstractWebScriptIT {
   }
 
   protected void authenticate(String username, String password) {
-    RestAssured.authentication = preemptive().basic("admin", "admin");
+    RestAssured.authentication = preemptive().basic(username, password);
 
   }
 
