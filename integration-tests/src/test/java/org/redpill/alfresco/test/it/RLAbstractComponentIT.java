@@ -35,26 +35,6 @@ public class RLAbstractComponentIT extends AbstractComponentIT {
 
   }
 
-  @Test
-  public void testGetCompanyHome() {
-    DemoComponent demoComponent = (DemoComponent) getApplicationContext().getBean("org.redpill-linpro.alfresco.DemoComponent");
-    NodeRef companyHome = demoComponent.getCompanyHome();
-    assertNotNull(companyHome);
-    String companyHomeName = (String) getServiceRegistry().getNodeService().getProperty(
-            companyHome, ContentModel.PROP_NAME);
-    assertNotNull(companyHomeName);
-    assertEquals("Company Home", companyHomeName);
-  }
-
-  @Test
-  public void testChildNodesCount() {
-    DemoComponent demoComponent = (DemoComponent) getApplicationContext().getBean("org.redpill-linpro.alfresco.DemoComponent");
-    NodeRef companyHome = demoComponent.getCompanyHome();
-    int childNodeCount = demoComponent.childNodesCount(companyHome);
-    assertNotNull(childNodeCount);
-    // There are 7 folders by default under Company Home
-    assertEquals(7, childNodeCount);
-  }
 
   @Test
   public void testBackwardCompatability() {
@@ -64,25 +44,25 @@ public class RLAbstractComponentIT extends AbstractComponentIT {
 
   @Test
   public void testComponentsAreWired() {
-    assertNotNull(_authenticationComponent);
-    assertNotNull(_transactionService);
-    assertNotNull(_transactionHelper);
-    assertNotNull(_behaviourFilter);
-    assertNotNull(_repository);
-    assertNotNull(_siteService);
-    assertNotNull(_authenticationService);
-    assertNotNull(_personService);
-    assertNotNull(_nodeService);
-    assertNotNull(_fileFolderService);
-    assertNotNull(_namespaceService);
-    assertNotNull(_contentService);
-    assertNotNull(_workflowService);
-    assertNotNull(_authorityService);
-    assertNotNull(_permissionService);
-    assertNotNull(_properties);
-    assertNotNull(_ownableService);
-    assertNotNull(_policyComponent);
-    assertNotNull(_searchService);
-    assertNotNull(_dictionaryService);
+    assertNotNull(authenticationComponent);
+    assertNotNull(transactionService);
+    assertNotNull(transactionHelper);
+    assertNotNull(behaviourFilter);
+    assertNotNull(repository);
+    assertNotNull(siteService);
+    assertNotNull(authenticationService);
+    assertNotNull(personService);
+    assertNotNull(nodeService);
+    assertNotNull(fileFolderService);
+    assertNotNull(namespaceService);
+    assertNotNull(contentService);
+    assertNotNull(workflowService);
+    assertNotNull(authorityService);
+    assertNotNull(permissionService);
+    assertNotNull(properties);
+    assertNotNull(ownableService);
+    assertNotNull(policyComponent);
+    assertNotNull(searchService);
+    assertNotNull(dictionaryService);
   }
 }

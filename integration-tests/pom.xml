@@ -1,43 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>integration-tests</artifactId>
   <name>Alfresco test - Integration test module</name>
-  <description>Integration Tests module for in-container integration testing - part of AIO - SDK 3</description>
-  <packaging>jar</packaging> <!-- Note. this just runs Integration Tests, but it needs to be a JAR otherwise
-                                            nothing is compiled (i.e. you cannot set it to pom) -->
-
+  <description>Integration Tests module for in-container integration testing</description>
+  <packaging>jar</packaging>
+  <!-- Note. this just runs Integration Tests, but it needs to be a JAR otherwise
+                                              nothing is compiled (i.e. you cannot set it to pom) -->
   <parent>
     <groupId>org.redpill-linpro.alfresco</groupId>
     <artifactId>alfresco-test</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
   </parent>
-
-  <properties>
-  </properties>
-
+  <properties></properties>
   <dependencies>
     <!-- Bring in any custom module that should be tested, by default we bring in the Platform JAR module
-    that is generated for the AIO project -->
+        that is generated for the AIO project -->
     <dependency>
       <groupId>org.redpill-linpro.alfresco</groupId>
       <artifactId>alfresco-test-repo</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-        
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <version>3.0.3</version>
       <scope>test</scope>
     </dependency>
-
-    
-
   </dependencies>
-
   <build>
     <testResources>
       <testResource>
@@ -45,9 +36,7 @@
         <filtering>true</filtering>
       </testResource>
     </testResources>
-
     <plugins>
-
       <plugin>
         <groupId>org.zeroturnaround</groupId>
         <artifactId>jrebel-maven-plugin</artifactId>
@@ -56,7 +45,6 @@
           <rebelXmlDirectory>${project.build.testOutputDirectory}</rebelXmlDirectory>
         </configuration>
       </plugin>
-
       <!-- Make sure we attach the tests so we can include them when running -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -70,9 +58,8 @@
           </execution>
         </executions>
       </plugin>
-
       <!-- Runs the integration tests, any class that follows naming convention
-      "**/IT*.java", "**/*IT.java", and "**/*ITCase.java" will be considered an integration test -->
+            "**/IT*.java", "**/*IT.java", and "**/*ITCase.java" will be considered an integration test -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
@@ -101,7 +88,6 @@
           </dependency>
         </dependencies>
       </plugin>
-
       <!-- Run Alfresco Tomcat embedded -->
       <plugin>
         <groupId>org.alfresco.maven.plugin</groupId>

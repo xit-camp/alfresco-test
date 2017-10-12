@@ -3,9 +3,9 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.redpill-linpro.alfresco</groupId>
   <artifactId>alfresco-test</artifactId>
-  <version>3.0.0</version>
+  <version>3.0.1</version>
   <name>Alfresco test</name>
-  <description>All-In-One (AIO) project for SDK 3.0</description>
+  <description>Alfresco test</description>
   <packaging>pom</packaging>
   <parent>
     <groupId>com.redpill-linpro.alfresco</groupId>
@@ -370,6 +370,37 @@
           <alwaysGenerate>true</alwaysGenerate>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.0.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.4</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <quiet>true</quiet>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 
