@@ -3,14 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>alfresco-test-repo</artifactId>
   <name>Alfresco test - Platform Module</name>
-  <description>Platform/Repo JAR Module (to be included in the alfresco.war) - part of AIO - SDK 3
-  </description>
+  <description>Alfresco test - Platform Module</description>
   <packaging>jar</packaging>
 
   <parent>
     <groupId>org.redpill-linpro.alfresco</groupId>
     <artifactId>alfresco-test</artifactId>
-    <version>3.0.1-SNAPSHOT</version>
+    <version>3.0.1</version>
   </parent>
 
   <properties>

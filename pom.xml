@@ -3,9 +3,9 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.redpill-linpro.alfresco</groupId>
   <artifactId>alfresco-test</artifactId>
-  <version>3.0.1-SNAPSHOT</version>
+  <version>3.0.1</version>
   <name>Alfresco test</name>
-  <description>All-In-One (AIO) project for SDK 3.0</description>
+  <description>Alfresco test</description>
   <packaging>pom</packaging>
   <parent>
     <groupId>com.redpill-linpro.alfresco</groupId>
