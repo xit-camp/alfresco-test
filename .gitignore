@@ -19,3 +19,6 @@ alf_data_dev
 
 *.log
 *.log.*
+
+.DS_Store
+.gitignore

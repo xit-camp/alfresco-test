@@ -1,0 +1,59 @@
+version: '3.4'
+services:
+  alfresco-test-share:
+    image: alfresco-share-alfresco-test:development
+    build:
+      dockerfile: ./Dockerfile
+      context: ../../../alfresco-test-share-docker/target
+    environment:
+      CATALINA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:8888"
+      REPO_HOST: alfresco-test-acs
+      REPO_PORT: 8080
+    ports:
+      - "${share.port}:8080"
+      - "${share.debug.port}:8888"
+  alfresco-test-acs:
+    image: alfresco-content-services-alfresco-test:development
+    build:
+      dockerfile: ./Dockerfile
+      context: ../../../alfresco-test-platform-docker/target
+    environment:
+      CATALINA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:8888"
+    ports:
+      - "${acs.port}:8080"
+      - "${acs.debug.port}:8888"
+    volumes:
+      - alfresco-test-acs-volume:/usr/local/tomcat/alf_data
+    depends_on:
+      - alfresco-test-postgres
+  alfresco-test-postgres:
+    image: postgres:9.6
+    environment:
+      POSTGRES_DB: alfresco
+      POSTGRES_USER: alfresco
+      POSTGRES_PASSWORD: alfresco
+    command: postgres -c max_connections=300 -c log_min_messages=LOG
+    ports:
+      - "${postgres.port}:5432"
+    volumes:
+      - alfresco-test-db-volume:/var/lib/postgresql/data
+  alfresco-test-ass:
+    image: alfresco/alfresco-search-services:1.2.0
+    environment:
+      SOLR_ALFRESCO_HOST: alfresco-test-acs
+      SOLR_ALFRESCO_PORT: 8080
+      SOLR_SOLR_HOST: alfresco-test-ass
+      SOLR_SOLR_PORT: 8983
+      SOLR_CREATE_ALFRESCO_DEFAULTS: alfresco,archive
+    ports:
+      - "8983:8983"
+    volumes:
+      - alfresco-test-ass-volume:/opt/alfresco-search-services/contentstore
+      - alfresco-test-ass-volume:/opt/alfresco-search-services/data
+volumes:
+  alfresco-test-acs-volume:
+    external: true
+  alfresco-test-db-volume:
+    external: true
+  alfresco-test-ass-volume:
+    external: true
