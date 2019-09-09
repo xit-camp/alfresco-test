@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.redpill-linpro.alfresco</groupId>
     <artifactId>alfresco-test</artifactId>
@@ -445,11 +446,21 @@
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
-  <modules>
-    <module>alfresco-test-platform</module>
-    <module>alfresco-test-share</module>
-    <module>alfresco-test-integration-tests</module>
-    <module>alfresco-test-platform-docker</module>
-    <module>alfresco-test-share-docker</module>
-  </modules>
+    <modules>
+        <module>alfresco-test-platform</module>
+        <module>alfresco-test-share</module>
+        <module>alfresco-test-integration-tests</module>
+        <module>alfresco-test-platform-docker</module>
+        <module>alfresco-test-share-docker</module>
+    </modules>
+    <distributionManagement>
+        <repository>
+            <id>redpill-linpro-releases</id>
+            <url>https://maven.redpill-linpro.com/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>redpill-linpro-snapshots</id>
+            <url>https://maven.redpill-linpro.com/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
