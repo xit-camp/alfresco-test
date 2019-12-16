@@ -10,7 +10,7 @@
     <parent>
         <groupId>org.redpill-linpro.alfresco</groupId>
         <artifactId>alfresco-test</artifactId>
-        <version>4.0.0-SNAPSHOTT</version>
+        <version>4.0.0</version>
     </parent>
 
     <properties>
