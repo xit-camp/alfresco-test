@@ -27,7 +27,7 @@
             <artifactId>alfresco-test-integration-tests</artifactId>
             <version>4.0.0</version>
             <scope>test</scope>
-            <classifier>tests</classifier>
+            <!--classifier>tests</classifier-->
         </dependency>
         <!-- Add any additional AMPs or extension JARs here that you want to be deployed in Alfresco -->
         <!-- IMPORTANT: 
